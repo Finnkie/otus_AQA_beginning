@@ -1,14 +1,12 @@
-import math
-import os
-a = 42;
-b = 38;
+a = 42
+b = 38
 while True:
     if a > 30:
         c = 100
         break
     else:
         a -+ 1
-        continue;
+        continue
 else:
     print("end of programm")
    
