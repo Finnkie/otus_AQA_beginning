@@ -5,8 +5,7 @@ while True:
         c = 100
         break
     else:
-        a -+ 1
+        a -= 1
         continue
 else:
     print("end of programm")
-   
