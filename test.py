@@ -1,6 +1,14 @@
-import math *
-a = 42
-    while True:
-    sdfsdlf
+import math
+import os
+a = 42;
+b = 38;
+while True:
+    if a > 30:
+        c = 100
+        break
+    else:
+        a -+ 1
+        continue;
 else:
-    break
+    print("end of programm")
+   
