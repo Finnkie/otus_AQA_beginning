@@ -17,9 +17,9 @@ class Triangle(Figure):
     @property
     def area(self):
         # Полупериметр для формулы Герона:
-        p = (self.perimeter)/2
+        p = self.perimeter / 2
         # Площадь по формуле Герона:
-        return round((math.sqrt(p*(p-self.side_a)*(p-self.side_b)*(p-self.side_c))), 2)
+        return round(math.sqrt(p * (p - self.side_a) * (p - self.side_b) * (p - self.side_c)), 2)
     
 
     @property

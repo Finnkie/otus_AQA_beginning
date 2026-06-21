@@ -13,10 +13,10 @@ class Rectangle(Figure):
 
     @property
     def area(self):
-        return round((self.side_a*self.side_b),2)
+        return round(self.side_a * self.side_b, 2)
     
 
     @property
     def perimeter(self):
-        return round(2*(self.side_a+self.side_b),2)
+        return round(2 *( self.side_a + self.side_b), 2)
 
