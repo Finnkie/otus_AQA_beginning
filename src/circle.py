@@ -7,9 +7,9 @@ class Circle(Figure):
     def __init__(self, radius: int | float):
         self.radius = radius
         if not isinstance(radius, (int, float)):
-            raise TypeError('\n\nRadius must be type: "int" or "float"')
+            raise TypeError(f'Radius must be type: "int" or "float". Yours: {type(radius)}')
         if radius <= 0:
-            raise ValueError(f'\n\nRadius value must be above zero.\nYour value: {radius}')
+            raise ValueError(f'Radius value must be above zero. Yours: {radius}')
 
 
     @property
