@@ -18,5 +18,5 @@ class Figure(ABC):
     def add_area(self, figure):
         if not isinstance(figure, Figure):
             raise TypeError('\nArgument must be a child Object of the abstract class Figure')
-        return self.area + figure.area
+        return round(self.area + figure.area, 2)
 
