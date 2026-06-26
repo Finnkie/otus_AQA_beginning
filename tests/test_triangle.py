@@ -12,7 +12,7 @@ import pytest
         pytest.param(5.7, 8.3, 10.1, 23.65, 24.1, marks=[pytest.mark.positive], id='float')
     ]
 )
-def test_circle_positive_radiuses(side_a, side_b, side_c, area, perimeter):
+def test_circle_radius(side_a, side_b, side_c, area, perimeter):
     tr = Triangle(side_a, side_b, side_c)
     assert tr.area == area, f"The Area result was just calculated does not corresponds to the calculating one, sides: {side_a}, {side_b}, {side_c}"
     assert tr.perimeter == perimeter, f"The Perimeter result was just calculated does not corresponds to the calculating one, sides: {side_a}, {side_b}, {side_c}"
@@ -25,7 +25,7 @@ def test_circle_positive_radiuses(side_a, side_b, side_c, area, perimeter):
         pytest.param(-3, 4, 5, marks=[pytest.mark.negative], id='below zero')
     ]
 )
-def test_rectangle_negative_int(side_a, side_b, side_c):
+def test_rectangle_int(side_a, side_b, side_c):
     with pytest.raises(ValueError, match="Sides value must be above zero"):
         Triangle(side_a, side_b, side_c)
 

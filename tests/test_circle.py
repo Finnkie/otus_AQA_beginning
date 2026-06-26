@@ -12,7 +12,7 @@ import pytest
         pytest.param(3.3, 34.21, 20.73, marks=[pytest.mark.positive], id='float')
     ]
 )
-def test_circle_positive_radiuses(radius, area, perimeter):
+def test_circle_radiuses(radius, area, perimeter):
     c = Circle(radius)
     assert c.area == area, f"The Area result was just calculated does not corresponds to the calculating one: radius = {radius}"
     assert c.perimeter == perimeter, f"The Perimeter result was just calculated does not corresponds to the calculating one: radius = {radius}"
@@ -25,7 +25,7 @@ def test_circle_positive_radiuses(radius, area, perimeter):
         pytest.param(-133, marks=[pytest.mark.negative], id='below zero')
     ]
 )
-def test_rectangle_negative_int(radius):
+def test_rectangle_int(radius):
     with pytest.raises(ValueError, match="Radius value must be above zero"):
         Circle(radius)
 
