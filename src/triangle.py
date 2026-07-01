@@ -9,7 +9,7 @@ class Triangle(Figure):
         if not isinstance(side_a, (int, float)) or not isinstance (side_b, (int, float))or not isinstance (side_c, (int, float)):
             raise TypeError('Sides value must be type: "int" or "float"')
         if side_a <= 0 or side_b <= 0 or side_c <= 0:
-            raise ValueError(f'Sides value must be above zero. Yours: {side_a}, {side_b}, {side_c}')
+            raise ValueError(f'Sides value must be above zero')
         if side_a + side_b <= side_c or side_b + side_c <= side_a or side_a + side_c <= side_b:
             raise ValueError(f'Triangle with values {side_a}, {side_b}, {side_c} does not exist!')
 

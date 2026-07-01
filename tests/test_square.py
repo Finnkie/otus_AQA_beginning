@@ -11,7 +11,7 @@ import pytest
         pytest.param(10.35, 107.12, 41.4, marks=[pytest.mark.positive], id='float')
     ]
 )
-def test_square_positive_sides(side_a, area, perimeter):
+def test_square_sides(side_a, area, perimeter):
     s = Square(side_a)
     assert s.area == area, f"The Area result was just calculated does not corresponds according to side values: side_a = {r.side_a}"
     assert s.perimeter == perimeter, f"The Perimeter result was just calculated does not corresponds according to side values: side_a = {r.side_a}"
@@ -24,7 +24,7 @@ def test_square_positive_sides(side_a, area, perimeter):
         pytest.param(-123, marks=[pytest.mark.negative], id='below zero')
     ]
 )
-def test_rectangle_negative_int(side_a):
+def test_rectangle_int(side_a):
     with pytest.raises(ValueError, match="Side parameter value must be above zero"):
         Square(side_a)
 
