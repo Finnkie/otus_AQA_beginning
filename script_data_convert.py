@@ -18,7 +18,11 @@ def read_json(filename: str) -> Union[list, dict]:
         return json.load(file)
 
 
-#def write_json(filename: str,)
+def create_json(filename: str, data: Union[list, dict]) -> None:
+    file_path = BASE_DIR / "src" / filename
+    with open(file_path, 'w', encoding='utf=8') as file:
+        return json.dump(data, file, indent = 4, ensure_ascii = False)
+
 
 user_list = [{"name": user["name"], "gender": user["gender"], "address": user["address"], "age": user["age"], "books": []} for user in read_json("users.json")]
 book_list = [{"title": book["Title"], "author": book["Author"], "pages": book["Pages"], "genre": book["Genre"]} for book in read_table_csv("books.csv")]
@@ -32,5 +36,5 @@ while book_index < len(book_list):
         else:
             break
 
-print(user_list)
-# Записать этот Dict в result.json
+create_json("result.json", user_list)
+
