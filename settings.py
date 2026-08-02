@@ -3,9 +3,9 @@
 
 # ============ Базовые URL для API ================
 
-BASE_URL_DOGCEO = "https://dog.ceo/dog-api/"
-BASE_URL_BREWERY = "https://www.openbrewerydb.org/"
-BASE_URL_JSON = "https://jsonplaceholder.typicode.com/"
+BASE_URL_DOGCEO = "https://dog.ceo/api"
+BASE_URL_BREWERY = "https://www.openbrewerydb.org"
+BASE_URL_JSON = "https://jsonplaceholder.typicode.com"
 
 
 # ============ Базовые заголовки =================
