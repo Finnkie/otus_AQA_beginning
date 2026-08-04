@@ -1,4 +1,3 @@
-# utils/http_client.py
 import requests
 from settings import BASE_URL_DOGCEO, DEFAULT_HEADERS
 
@@ -8,11 +7,11 @@ class HttpRequests:
         self.headers = DEFAULT_HEADERS.copy()
     
     def request(self, method: str, path: str, body: dict = None, headers: dict = None, code: int = 200):
+        url = f"{self.base_url}{path}"
+
         final_headers = self.headers.copy()
         if headers:
             final_headers.update(headers)
-        
-        url = f"{self.base_url}{path}"
         
         response = requests.request(
             method=method,
@@ -23,8 +22,8 @@ class HttpRequests:
         
         if code:
             assert response.status_code == code, (
-                f"Expected status {code}, got {response.status_code}. "
-                f"Response: {response.text[:200]}"
+                f"Ожидаемый код: {code}. Получен: {response.status_code}"
+                f"Ответ сервера: {response.text[:200]}"
             )
         
         return response
