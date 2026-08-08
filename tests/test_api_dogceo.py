@@ -75,6 +75,7 @@ def test_random_dogs_positived(dogs_number, status, expected_number):
 
 
 # Негативный тест на получение списка случайных собак
+# Зашит ложно-положительный ответ с кодом 200 по багу
 @pytest.mark.parametrize("dogs_number", [-10, 0])
 def test_zero_negative_dogs_with_xfail(dogs_number):
     client = HttpRequests()
