@@ -6,8 +6,8 @@ class HttpRequests:
         self.base_url = base_url
         self.headers = DEFAULT_HEADERS.copy()
     
-    def request(self, method: str, path: str, body: dict = None, headers: dict = None, code: int = 200):
-        url = f"{self.base_url}{path}"
+    def request(self, method: str, endpoint: str, body: dict = None, headers: dict = None, code: int = 200):
+        url = f"{self.base_url}{endpoint}"
 
         final_headers = self.headers.copy()
         if headers:
@@ -28,14 +28,14 @@ class HttpRequests:
         
         return response
     
-    def get(self, path: str, headers: dict = None, code: int = 200):
-        return self.request("GET", path, headers=headers, code=code)
+    def get(self, endpoint: str, headers: dict = None, code: int = 200):
+        return self.request("GET", endpoint, headers=headers, code=code)
     
-    def post(self, path: str, body: dict = None, headers: dict = None, code: int = 200):
-        return self.request("POST", path, body=body, headers=headers, code=code)
+    def post(self, endpoint: str, body: dict = None, headers: dict = None, code: int = 200):
+        return self.request("POST", endpoint, body=body, headers=headers, code=code)
     
-    def delete(self, path: str, headers: dict = None, code: int = 200):
-        return self.request("DELETE", path, headers=headers, code=code)
+    def delete(self, endpoint: str, headers: dict = None, code: int = 200):
+        return self.request("DELETE", endpoint, headers=headers, code=code)
     
-    def put(self, path: str, body: dict = None, headers: dict = None, code: int = 200):
-        return self.request("PUT", path, body=body, headers=headers, code=code)
+    def put(self, endpoint: str, body: dict = None, headers: dict = None, code: int = 200):
+        return self.request("PUT", endpoint, body=body, headers=headers, code=code)
