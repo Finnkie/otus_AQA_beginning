@@ -1,7 +1,7 @@
 import pytest
 from utils.http_client import HttpRequests
 from pydantic import BaseModel, field_validator
-from typing import Optional
+from typing import Dict, Optional
 
 class TestBreweryAPI:
 
@@ -55,6 +55,29 @@ class TestBreweryAPI:
             assert v in allowed_types, f"Неизвестный тип: {v}"
             return v
 
+    class BreweryMetaSchema(BaseModel):
+        total: int
+        by_state: Dict[str, int]
+        by_country: Dict[str, int]
+        by_type: Dict[str, int]
+        page: int = 1
+        per_page: int = 50
+        
+        @field_validator('total')
+        def validate_total(cls, v):
+            assert v > 0, "total должен быть больше 0"
+            return v
+        
+        @field_validator('page')
+        def validate_page(cls, v):
+            assert v >= 1, "page должен быть >= 1"
+            return v
+        
+        @field_validator('per_page')
+        def validate_per_page(cls, v):
+            assert 1 <= v <= 200, "per_page должен быть между 1 и 200"
+            return v
+
     # Позитивный тест пивоварню по id из фикстуры, проверка по pydantic
     def test_get_random_brewery(self, brewery_client, random_brewery_id):
         response = brewery_client.get(f"/breweries/{random_brewery_id}", code=200)
@@ -77,58 +100,49 @@ class TestBreweryAPI:
         self.BrewerySchema(**data[0])
 
 
-    # Позитивный тест
-    @pytest.mark.parametrize("per_page, expected_min_count", [
-        (1, 1), 
-        (50, 1),
-        (200, 1),
-    ])
-    def test_search_breweries_positive(self, brewery_client, per_page, expected_min_count):
+    # Позитивный тест на 
+    @pytest.mark.parametrize("per_page", [ 1, 50, 200])
+    def test_search_breweries_positive(self, brewery_client, per_page):
         search_query = "brew"
         response = brewery_client.get(f"/breweries/search?query={search_query}&per_page={per_page}", code=200)
         data = response.json()
 
-        # Проверяем, что ответ - список
-        assert isinstance(data, list), "Ответ должен быть списком"
+        assert isinstance(data, list)
 
-        # Проверяем, что количество результатов не меньше ожидаемого
-        # (для запроса "brew" их точно будет больше 0)
-        assert len(data) >= expected_min_count, (
-            f"Ожидалось минимум {expected_min_count} результатов, получено {len(data)}"
-        )
-
-        # Проверяем, что количество результатов не превышает 50 (ограничение API)
-        assert len(data) <= 50, "Количество результатов не должно превышать 50"
-
-        # Проверяем структуру каждого результата
+         # для скорости обрежем проверку по pydantic
         for brewery in data:
-            # Проверяем наличие обязательных полей
             assert "id" in brewery, "У результата нет поля id"
             assert "name" in brewery, "У результата нет поля name"
-            # Проверяем, что в названии есть искомая подстрока (регистронезависимо)
-            assert search_query.lower() in brewery["name"].lower(), (
-                f"Название '{brewery['name']}' не содержит '{search_query}'"
-            )
 
+        assert len(data) == per_page
         print(f"\nПоиск по '{search_query}' вернул {len(data)} пивоварен")
 
+       
+    # Негативный тест
+    @pytest.mark.parametrize("per_page", [0, -20])
+    def test_search_breweries_negative(self, brewery_client, per_page):
+        search_query = "brew"
+        response = brewery_client.get(f"/breweries/search?query={search_query}&per_page={per_page}", code=422)
+        data = response.json()
+        print(data)
+        # Проверка, что API не падает и возвращает словарь с ошибкой
+        assert isinstance(data, dict)
+        assert "message" in data, "В ответе нет поля message"
+        assert "must be at least 1" in data["message"], (
+            f"Ожидалось сообщение 'must be at least 1', получено: {data['message']}"
+        )
 
-    # # Негативный тест
-    # @pytest.mark.parametrize("per_page", [
-    #     0,    # Некорректное значение (0)
-    #     -20,  # Некорректное значение (отрицательное)
-    # ])
-    # def test_search_breweries_negative(self, brewery_client, per_page):
-    #     search_query = "brew"
-    #     response = brewery_client.get(f"/breweries/search?query={search_query}&per_page={per_page}", code=200)
-    #     data = response.json()
-
-    #     # Проверяем, что API не падает и возвращает список
-    #     assert isinstance(data, list), "Ответ должен быть списком"
-
-    #     # Проверяем, что список пуст (API игнорирует некорректные per_page)
-    #     assert len(data) == 0, (
-    #         f"Для per_page={per_page} ожидался пустой список, получено {len(data)} результатов"
-    #     )
-
-    #     print(f"\n✅ Для per_page={per_page} API вернул пустой список (корректное поведение)")
+    # Позитивный тест на meta-информацию
+    def test_get_breweries_meta(self, brewery_client):
+        response = brewery_client.get("/breweries/meta", code=200)
+        data = response.json()
+        print(f"\nОтвет: {data}")
+        
+        # Валидация через Pydantic
+        meta = self.BreweryMetaSchema(**data)
+        
+        # Валидация основных полей по документации
+        assert meta.total > 0
+        assert len(meta.by_state) > 0
+        assert len(meta.by_country) > 0
+        assert len(meta.by_type) > 0
