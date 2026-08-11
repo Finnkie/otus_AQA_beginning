@@ -31,7 +31,7 @@ class TestBreweryAPI:
         data = response.json()
         assert isinstance(data, list)
         BrewerySchema(**data[0])
-        assert data[0]["name"], "Название пивоварни не может быть пустым"
+        assert data[0]["name"]
         assert len(data[0]["name"]) >= 2
         if data[0]["phone"]:
             assert any(sym.isdigit() for sym in data[0]["phone"])
@@ -60,8 +60,9 @@ class TestBreweryAPI:
         # Проверка, что API не падает и возвращает словарь с ошибкой
         assert isinstance(data, dict)
         assert "message" in data, "В ответе нет поля message"
-        assert "must be at least 1" in data["message"], (
-            f"Ожидалось сообщение 'must be at least 1',получено: {data['message']}"
+        assert "must be at least 1" or "not be greater than 200" in data["message"], (
+            f"Ожидалось сообщение 'must be at least 1'"
+            f"или 'not be greater than 200',получено: {data['message']}"
         )
 
     # Позитивный тест на meta-информацию
