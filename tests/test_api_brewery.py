@@ -2,6 +2,7 @@ import pytest
 from utils.http_client import HttpRequests
 from schemas.brewery_schema import BrewerySchema, BreweryMetaSchema
 
+
 class TestBreweryAPI:
     # Фикстура для преобразования дефолт-url клиента
     @pytest.fixture
@@ -25,16 +26,30 @@ class TestBreweryAPI:
         # id для второго теста
         assert brewery.id == random_brewery_id
 
-    # Позитивный тест на рандомную пивоварню, проверка по pydantic
+    # Позитивный тест на бизнес-проверку рандомной пивоварни, проверка по pydantic
     def test_get_brewery_by_id(self, brewery_client):
         response = brewery_client.get("/breweries/random", code=200)
         data = response.json()
         assert isinstance(data, list)
-        BrewerySchema(**data[0])
-        assert data[0]["name"]
-        assert len(data[0]["name"]) >= 2
-        if data[0]["phone"]:
-            assert any(sym.isdigit() for sym in data[0]["phone"])
+        brewery = BrewerySchema(**data[0])
+
+        # Бизнес-проверка самих данных пивоварни
+        # Название - непустое, достаточной длины и содержит буквы
+        assert brewery.name.strip(), "Название пивоварни пустое"
+        assert len(brewery.name.strip()) >= 2
+        assert any(ch.isalpha() for ch in brewery.name), (
+            f"В названии нет букв: {brewery.name}"
+        )
+        # Телефон (если указан) содержит хотя бы одну цифру
+        if brewery.phone:
+            assert any(sym.isdigit() for sym in brewery.phone), (
+                f"Телефон без цифр: {brewery.phone}"
+            )
+        # Сайт (если указан) должен быть корректным URL
+        if brewery.website_url:
+            assert brewery.website_url.startswith(("http://", "https://")), (
+                f"Некорректный URL сайта: {brewery.website_url}"
+            )
 
     # Позитивный тест на рандомные пивоварни списком, с pydantic
     @pytest.mark.parametrize("per_page", [1, 50, 200])
