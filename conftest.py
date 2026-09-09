@@ -63,9 +63,7 @@ def resolve_demo_shop_url(browser_name: str, headless: bool) -> str:
         for _ in range(3):
             driver.get(DEMO_LAUNCHER_URL)
             try:
-                src = WebDriverWait(driver, 30).until(
-                    lambda d: _framelive_src(d)
-                )
+                src = WebDriverWait(driver, 30).until(lambda d: _framelive_src(d))
                 return src.split("/en")[0]
             except TimeoutException:
                 continue

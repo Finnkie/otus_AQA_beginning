@@ -3,6 +3,7 @@
 Каждый тест проверяет одну страницу, не менее пяти элементов,
 все элементы ждутся явным ожиданием (WebDriverWait + expected_conditions).
 """
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -32,7 +33,9 @@ def test_main_page_has_elements(driver, base_url, wait):
     # В меню есть ссылки на категории, на главной есть карточки товаров
     menu_links = driver.find_elements(By.CSS_SELECTOR, "#top-menu a")
     products = driver.find_elements(By.CSS_SELECTOR, "article.product-miniature")
-    assert len(menu_links) >= 3, f"Ожидалось минимум 3 пункта меню, найдено {len(menu_links)}"
+    assert len(menu_links) >= 3, (
+        f"Ожидалось минимум 3 пункта меню, найдено {len(menu_links)}"
+    )
     assert len(products) >= 1, "На главной нет карточек товаров"
 
 
@@ -121,4 +124,6 @@ def test_registration_page_has_elements(driver, base_url, wait):
             (By.CSS_SELECTOR, "button[data-link-action='save-customer']"),
         ],
     )
-    assert driver.find_element(By.CSS_SELECTOR, "h1").text.strip() == "Create an account"
+    assert (
+        driver.find_element(By.CSS_SELECTOR, "h1").text.strip() == "Create an account"
+    )

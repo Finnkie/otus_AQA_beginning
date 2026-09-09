@@ -1,4 +1,5 @@
 """Часть 3. Сценарии: логин/разлогин в админку, корзина, переключение валюты."""
+
 import random
 
 import pytest
@@ -30,7 +31,9 @@ def test_admin_login_and_logout(driver, admin_url, wait):
     )
     email_input.clear()
     email_input.send_keys(ADMIN_EMAIL)
-    driver.find_element(By.CSS_SELECTOR, "input[name='passwd']").send_keys(ADMIN_PASSWORD)
+    driver.find_element(By.CSS_SELECTOR, "input[name='passwd']").send_keys(
+        ADMIN_PASSWORD
+    )
     submit_buttons = driver.find_elements(By.CSS_SELECTOR, "button[type='submit']")
     next(b for b in submit_buttons if b.is_displayed()).click()
 
@@ -110,9 +113,7 @@ def test_add_random_product_to_cart(driver, base_url, wait):
     cart_text = wait.until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "#main"))
     ).text
-    assert product_name in cart_text, (
-        f"Товар '{product_name}' не найден в корзине"
-    )
+    assert product_name in cart_text, f"Товар '{product_name}' не найден в корзине"
 
 
 # ============ Переключение валют ============
@@ -140,7 +141,8 @@ def switch_currency(driver, wait, currency_symbol):
     else:
         links = wait.until(
             lambda d: [
-                a for a in block.find_elements(By.CSS_SELECTOR, "a")
+                a
+                for a in block.find_elements(By.CSS_SELECTOR, "a")
                 if currency_symbol in (a.text or "")
             ]
         )
