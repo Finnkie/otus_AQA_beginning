@@ -2,6 +2,7 @@ import pytest
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.webdriver import LocalWebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 
 # Официальное демо PrestaShop: лендинг отдаёт сам магазин в iframe
@@ -31,8 +32,8 @@ def pytest_addoption(parser):
     )
 
 
-def create_driver(browser_name: str, headless: bool):
-    """Создаёт драйвер для выбранного браузера."""
+def driver_factory(browser_name: str, headless: bool) -> LocalWebDriver:
+    """Фабрика драйверов: по имени браузера создаёт и возвращает webdriver."""
     if browser_name == "chrome":
         options = webdriver.ChromeOptions()
         if headless:
@@ -58,7 +59,7 @@ def resolve_demo_shop_url(browser_name: str, headless: bool) -> str:
     адрес магазина выдаётся временный и появляется не сразу -
     ждём, пока лендинг создаст демо-инстанс и заполнит iframe.
     """
-    driver = create_driver(browser_name, headless)
+    driver = driver_factory(browser_name, headless)
     try:
         for _ in range(3):
             driver.get(DEMO_LAUNCHER_URL)
@@ -86,9 +87,10 @@ def _framelive_src(driver):
 @pytest.fixture
 def driver(request):
     """Запускает выбранный браузер и закрывает его после теста."""
-    browser_name = request.config.getoption("--browser")
-    headless = request.config.getoption("--headless")
-    browser = create_driver(browser_name, headless)
+    browser = driver_factory(
+        request.config.getoption("--browser"),
+        request.config.getoption("--headless"),
+    )
     browser.set_page_load_timeout(30)
     yield browser
     browser.quit()
