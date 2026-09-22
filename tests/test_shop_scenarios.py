@@ -38,8 +38,6 @@ def test_admin_login_and_logout(driver, admin_url, wait):
 
     wait.until(EC.url_contains("AdminDashboard"))
 
-    # Разлогин: ждём ссылку выхода в шапке админки и уходим по ней
-    # (дашборд тяжёлый и грузится медленно - ссылке нужен запас времени)
     logout_link = WebDriverWait(driver, 30).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='logout']"))
     )
@@ -47,26 +45,19 @@ def test_admin_login_and_logout(driver, admin_url, wait):
     admin_dir = admin_url.split("/index.php")[0]
     open_page(driver, logout_url)
 
-    # Разлогин выполнен: снова открыта форма логина
-    # (страница админки тяжёлая, ждём подольше)
     try:
         WebDriverWait(driver, 30).until(
-            EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, "input[name='email']")
-            )
+            EC.visibility_of_element_located((By.CSS_SELECTOR, "input[name='email']"))
         )
     except TimeoutException:
-        # демо иногда отвечает 502 - пробуем ещё раз открыть страницу логина
         open_page(driver, f"{admin_dir}/login")
         WebDriverWait(driver, 30).until(
-            EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, "input[name='email']")
-            )
+            EC.visibility_of_element_located((By.CSS_SELECTOR, "input[name='email']"))
         )
     assert "AdminDashboard" not in driver.current_url
 
 
-# ============ 3.2 Случайный товар с главной добавляется в корзину ============
+# ============ Случайный товар с главной добавляется в корзину ============
 def cart_confirmation(driver):
     """Подтверждение добавления: модальное окно или счётчик товаров в корзине."""
     if driver.find_elements(By.CSS_SELECTOR, "#blockcart-modal.show"):
@@ -121,9 +112,11 @@ def test_add_random_product_to_cart(driver, base_url, wait):
 
     # Проверка, что товар в корзине (страница корзины грузится медленно)
     open_page(driver, f"{base_url}/cart")
-    cart_text = WebDriverWait(driver, 30).until(
-        EC.presence_of_element_located((By.TAG_NAME, "main"))
-    ).text
+    cart_text = (
+        WebDriverWait(driver, 30)
+        .until(EC.presence_of_element_located((By.TAG_NAME, "main")))
+        .text
+    )
     assert product_name in cart_text, f"Товар '{product_name}' не найден в корзине"
 
 
