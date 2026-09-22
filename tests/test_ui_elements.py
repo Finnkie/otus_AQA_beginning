@@ -1,9 +1,3 @@
-"""Часть 2. Проверка наличия элементов на страницах PrestaShop.
-
-Каждый тест проверяет одну страницу, не менее пяти элементов,
-все элементы ждутся явным ожиданием (WebDriverWait + expected_conditions).
-"""
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
