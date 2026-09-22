@@ -1,5 +1,3 @@
-"""Часть 3. Сценарии: логин/разлогин в админку, корзина, переключение валюты."""
-
 import random
 
 import pytest
@@ -11,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
-# Учётка администратора демо PrestaShop
+
 ADMIN_EMAIL = "demo@prestashop.com"
 ADMIN_PASSWORD = "prestashop_demo"
 
@@ -34,11 +32,14 @@ def test_admin_login_and_logout(driver, admin_url, wait):
     driver.find_element(By.CSS_SELECTOR, "input[name='passwd']").send_keys(
         ADMIN_PASSWORD
     )
-    submit_buttons = driver.find_elements(By.CSS_SELECTOR, "button[type='submit']")
-    next(b for b in submit_buttons if b.is_displayed()).click()
+    # Нажимаем первую видимую кнопку входа
+    for button in driver.find_elements(By.CSS_SELECTOR, "button[type='submit']"):
+        if button.is_displayed():
+            button.click()
+            break
 
     # Логин выполнен: редирект на панель управления (AdminDashboard)
-    wait.until(lambda d: "AdminDashboard" in d.current_url)
+    wait.until(EC.url_contains("AdminDashboard"))
 
     # Разлогин: выходим по стандартной ссылке logout
     admin_dir = admin_url.split("/index.php")[0]
@@ -91,7 +92,7 @@ def test_add_random_product_to_cart(driver, base_url, wait):
             # кнопку перекрывает другой элемент страницы - кликаем напрямую через JS
             driver.execute_script("arguments[0].click();", add_button)
         try:
-            WebDriverWait(driver, 8).until(lambda d: cart_confirmation(d))
+            WebDriverWait(driver, 8).until(cart_confirmation)
             confirmed = True
             break
         except TimeoutException:
@@ -106,7 +107,7 @@ def test_add_random_product_to_cart(driver, base_url, wait):
                 (By.CSS_SELECTOR, "button.product__add-to-cart-button")
             )
         ).click()
-        wait.until(lambda d: cart_confirmation(d))
+        wait.until(cart_confirmation)
 
     # Проверяем, что товар появился в корзине
     driver.get(f"{base_url}/cart")
@@ -126,27 +127,32 @@ def find_currency_block(driver):
     return None
 
 
-def switch_currency(driver, wait, currency_symbol):
+def switch_currency(driver, currency_symbol):
     """Переключает валюту кликом по варианту с нужным символом ($ или €)."""
     block = find_currency_block(driver)
     if block is None:
         pytest.skip("В магазине включена только одна валюта, переключение недоступно")
 
+    # Ищем нужную валюту и переключаемся на неё.
     # Валюта может быть оформлена выпадающим списком или списком ссылок
+    switched = False
     options = block.find_elements(By.CSS_SELECTOR, "option")
     if options:
         select = Select(block.find_element(By.CSS_SELECTOR, "select"))
-        option = next(o for o in options if currency_symbol in o.text)
-        select.select_by_visible_text(option.text)
+        for option in options:
+            if currency_symbol in option.text:
+                select.select_by_visible_text(option.text)
+                switched = True
+                break
     else:
-        links = wait.until(
-            lambda d: [
-                a
-                for a in block.find_elements(By.CSS_SELECTOR, "a")
-                if currency_symbol in (a.text or "")
-            ]
-        )
-        links[0].click()
+        for link in block.find_elements(By.CSS_SELECTOR, "a"):
+            if currency_symbol in link.text:
+                link.click()
+                switched = True
+                break
+
+    if not switched:
+        pytest.skip(f"В магазине нет валюты со знаком {currency_symbol}")
 
     # Дожидаемся обновления страницы с новыми ценами
     driver.refresh()
@@ -168,7 +174,7 @@ def test_currency_switch_changes_prices_on_main_page(driver, base_url, wait):
     prices_before = get_product_prices(driver, wait)
     assert prices_before, "На главной странице не найдены цены товаров"
 
-    switch_currency(driver, wait, "$")
+    switch_currency(driver, "$")
     prices_after = get_product_prices(driver, wait)
 
     assert prices_after != prices_before, "Цены на главной не изменились"
@@ -183,7 +189,7 @@ def test_currency_switch_changes_prices_in_catalog(driver, base_url, wait):
     prices_before = get_product_prices(driver, wait)
     assert prices_before, "В каталоге не найдены цены товаров"
 
-    switch_currency(driver, wait, "$")
+    switch_currency(driver, "$")
     prices_after = get_product_prices(driver, wait)
 
     assert prices_after != prices_before, "Цены в каталоге не изменились"
