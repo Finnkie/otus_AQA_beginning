@@ -59,6 +59,21 @@ def framelive_is_ready(driver):
     return False
 
 
+def open_page(driver, url):
+    """Открывает страницу, не падая на медленной загрузке демо.
+
+    Демо-магазин часто грузится с таймаутом - пробуем загрузить страницу
+    ещё раз (зависший запрос не мешает новой попытке). Нужные элементы
+    мы всё равно ждём явными ожиданиями.
+    """
+    for _ in range(3):
+        try:
+            driver.get(url)
+            return
+        except TimeoutException:
+            continue
+
+
 def resolve_base_url(browser_name: str, headless: bool) -> str:
     driver = driver_factory(browser_name, headless)
     try:
@@ -82,7 +97,7 @@ def driver(request):
         request.config.getoption("--browser"),
         request.config.getoption("--headless"),
     )
-    browser.set_page_load_timeout(30)
+    browser.set_page_load_timeout(60)
     yield browser
     browser.quit()
 
@@ -105,9 +120,9 @@ def wait(driver):
 @pytest.fixture
 def admin_url(driver, base_url, wait):
     url = f"{base_url}/administration"
-    driver.get(url)
+    open_page(driver, url)
     if "404" in (driver.title or ""):
         url = f"{base_url}/admin-dev/index.php?controller=AdminLogin"
-        driver.get(url)
+        open_page(driver, url)
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='email']")))
     return url

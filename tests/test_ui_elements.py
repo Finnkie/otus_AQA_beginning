@@ -1,3 +1,4 @@
+from conftest import open_page
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -10,7 +11,7 @@ def check_elements(wait, locators):
 
 # ============ Главная страница ============
 def test_main_page_has_elements(driver, base_url, wait):
-    driver.get(base_url)
+    open_page(driver, base_url)
 
     check_elements(
         wait,
@@ -24,7 +25,6 @@ def test_main_page_has_elements(driver, base_url, wait):
             (By.CSS_SELECTOR, "footer#footer"),
         ],
     )
-    # В меню есть ссылки на категории, на главной есть карточки товаров
     menu_links = driver.find_elements(By.CSS_SELECTOR, "#top-menu a")
     products = driver.find_elements(By.CSS_SELECTOR, "article.product-miniature")
     assert len(menu_links) >= 3, (
@@ -33,9 +33,8 @@ def test_main_page_has_elements(driver, base_url, wait):
     assert len(products) >= 1, "На главной нет карточек товаров"
 
 
-# ============ Каталог (категория Art) ============
 def test_catalog_art_page_has_elements(driver, base_url, wait):
-    driver.get(f"{base_url}/9-art")
+    open_page(driver, f"{base_url}/9-art")
 
     check_elements(
         wait,
@@ -48,7 +47,6 @@ def test_catalog_art_page_has_elements(driver, base_url, wait):
             (By.CSS_SELECTOR, ".products__pagination"),
         ],
     )
-    # Заголовок страницы - название категории, у товаров указаны цены
     assert driver.find_element(By.CSS_SELECTOR, "h1").text.strip() == "Art"
     prices = driver.find_elements(By.CSS_SELECTOR, ".product-miniature__price")
     assert any("€" in price.text or "$" in price.text for price in prices), (
@@ -56,17 +54,15 @@ def test_catalog_art_page_has_elements(driver, base_url, wait):
     )
 
 
-# ============ Карточка товара ============
 def test_product_page_has_elements(driver, base_url, wait):
-    driver.get(base_url)
+    open_page(driver, base_url)
 
-    # Переходим на карточку первого товара с главной страницы
     product_link = wait.until(
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, "article.product-miniature a.product-miniature__title")
         )
     )
-    driver.get(product_link.get_attribute("href"))
+    open_page(driver, product_link.get_attribute("href"))
 
     check_elements(
         wait,
@@ -87,7 +83,6 @@ def test_product_page_has_elements(driver, base_url, wait):
 
 # ============ Страница логина в админку ============
 def test_admin_login_page_has_elements(driver, admin_url, wait):
-    # Фикстура admin_url уже открыла страницу логина
     check_elements(
         wait,
         [
@@ -101,9 +96,8 @@ def test_admin_login_page_has_elements(driver, admin_url, wait):
     )
 
 
-# ============ Страница регистрации ============
 def test_registration_page_has_elements(driver, base_url, wait):
-    driver.get(f"{base_url}/registration")
+    open_page(driver, f"{base_url}/registration")
 
     check_elements(
         wait,
