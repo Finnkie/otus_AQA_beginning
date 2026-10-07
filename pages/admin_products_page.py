@@ -1,3 +1,4 @@
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
@@ -9,7 +10,9 @@ from pages.base_page import BasePage
 class AdminProductsPage(BasePage):
     """Раздел администратора: список товаров (Каталог -> Товары)."""
 
-    PRODUCTS_PATH = "/admin-dev/index.php/sell/catalog/products"
+    # Путь к разделу товаров зависит от инстанса: у демо админка живёт
+    # в /admin-dev, у своего PrestaShop - обычно /administration
+    ADMIN_PATHS = ["/administration", "/admin-dev"]
     PRODUCTS_TABLE = "#product_catalog_list"
     TABLE_ROWS = "#product_catalog_list tbody tr"
     NAME_FILTER = "input[name='filter_column_name']"
@@ -19,9 +22,20 @@ class AdminProductsPage(BasePage):
     DELETE_LINK = "a[href*='deleteproduct'], a[onclick*='delete']"
 
     def open_products(self):
-        self.open(self.PRODUCTS_PATH)
-        self.wait.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, self.PRODUCTS_TABLE))
+        """Открывает список товаров, пробуя известные пути админки."""
+        for admin_path in self.ADMIN_PATHS:
+            self.open(f"{admin_path}/index.php/sell/catalog/products")
+            try:
+                WebDriverWait(self.driver, 20).until(
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, self.PRODUCTS_TABLE)
+                    )
+                )
+                return
+            except TimeoutException:
+                continue
+        raise TimeoutException(
+            f"Не удалось открыть список товаров ни по одному из путей: {self.ADMIN_PATHS}"
         )
 
     def search_product(self, name):
