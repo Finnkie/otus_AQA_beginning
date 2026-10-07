@@ -1,8 +1,8 @@
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from conftest import open_page
 from pages.base_page import BasePage
 
 
@@ -23,15 +23,32 @@ class AdminLoginPage(BasePage):
         self.admin_path = "/administration"
 
     def open_login_page(self):
-        open_page(self.driver, f"{self.base_url}/administration")
-        if "404" in (self.driver.title or ""):
+        """Открывает страницу логина в админку.
+
+        По заданию админка доступна по /administration, на официальном
+        демо - по /admin-dev/index.php?controller=AdminLogin. Признак
+        страницы логина - поле пароля (на 404-странице витрины его нет).
+        """
+        self.open("/administration")
+        if not self._login_form_appeared():
             self.admin_path = "/admin-dev/index.php?controller=AdminLogin"
-            open_page(self.driver, f"{self.base_url}{self.admin_path}")
-        self.wait.until(
+            self.open(self.admin_path)
+        WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located(
-                (By.CSS_SELECTOR, self.EMAIL_INPUT)
+                (By.CSS_SELECTOR, self.PASSWORD_INPUT)
             )
         )
+
+    def _login_form_appeared(self):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, "input[type='password']")
+                )
+            )
+            return True
+        except TimeoutException:
+            return False
 
     def login(self, email, password):
         """Входит в админку и ждёт редиректа на панель управления."""
