@@ -110,19 +110,3 @@ def base_url(request):
         headless = request.config.getoption("--headless")
         return resolve_base_url(browser_name, headless)
     return url
-
-
-@pytest.fixture
-def wait(driver):
-    return WebDriverWait(driver, 15)
-
-
-@pytest.fixture
-def admin_url(driver, base_url, wait):
-    url = f"{base_url}/administration"
-    open_page(driver, url)
-    if "404" in (driver.title or ""):
-        url = f"{base_url}/admin-dev/index.php?controller=AdminLogin"
-        open_page(driver, url)
-    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='email']")))
-    return url
