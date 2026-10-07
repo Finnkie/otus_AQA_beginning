@@ -1,117 +1,108 @@
-from conftest import open_page
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-
-
-def check_elements(wait, locators):
-    """Явно ждёт появления каждого элемента из списка локаторов."""
-    for by, selector in locators:
-        wait.until(EC.presence_of_element_located((by, selector)))
+"""Часть 2 прошлого ДЗ: наличие элементов на страницах PrestaShop (через PageObject)."""
+from pages.admin_login_page import AdminLoginPage
+from pages.catalog_page import CatalogPage
+from pages.main_page import MainPage
+from pages.product_page import ProductPage
+from pages.registration_page import RegistrationPage
 
 
 # ============ Главная страница ============
-def test_main_page_has_elements(driver, base_url, wait):
-    open_page(driver, base_url)
+def test_main_page_has_elements(driver, base_url):
+    main_page = MainPage(driver, base_url)
+    main_page.open_main()
 
-    check_elements(
-        wait,
-        [
-            (By.CSS_SELECTOR, "#header"),
-            (By.CSS_SELECTOR, "#header .logo"),
-            (By.CSS_SELECTOR, "input[name='s']"),
-            (By.CSS_SELECTOR, "#_desktop_ps_shoppingcart .blockcart"),
-            (By.CSS_SELECTOR, "#_desktop_ps_customersignin a"),
-            (By.CSS_SELECTOR, "#top-menu"),
-            (By.CSS_SELECTOR, "footer#footer"),
-        ],
+    for selector in [
+        main_page.HEADER,
+        main_page.LOGO,
+        main_page.SEARCH_INPUT,
+        main_page.CART_BLOCK,
+        main_page.SIGN_IN_LINK,
+        main_page.TOP_MENU,
+        main_page.FOOTER,
+    ]:
+        main_page.find(selector)
+
+    assert main_page.menu_links_count() >= 3, "Ожидалось минимум 3 пункта меню"
+    assert len(main_page.product_cards()) >= 1, "На главной нет карточек товаров"
+
+
+# ============ Каталог (категория Art) ============
+def test_catalog_art_page_has_elements(driver, base_url):
+    catalog_page = CatalogPage(driver, base_url)
+    catalog_page.open_catalog()
+
+    for selector in [
+        catalog_page.H1,
+        catalog_page.BREADCRUMB,
+        catalog_page.PRODUCT_CARDS,
+        catalog_page.PRODUCT_PRICE,
+        catalog_page.SORT_DROPDOWN,
+        catalog_page.PAGINATION,
+    ]:
+        catalog_page.find(selector)
+
+    assert catalog_page.title() == "Art"
+    prices = catalog_page.product_prices()
+    assert any("€" in price or "$" in price for price in prices), "Нет цен у товаров"
+
+
+# ============ Карточка товара ============
+def test_product_page_has_elements(driver, base_url):
+    main_page = MainPage(driver, base_url)
+    main_page.open_main()
+
+    _, product_url = main_page.random_product_name_and_url()
+    product_page = ProductPage(driver, base_url)
+    product_page.open_product(product_url)
+
+    for selector in [
+        product_page.H1,
+        product_page.BREADCRUMB,
+        product_page.PRICE_BLOCK,
+        product_page.QUANTITY_INPUT,
+        product_page.ADD_TO_CART_BUTTON,
+    ]:
+        product_page.find(selector)
+
+    assert product_page.title(), "У товара нет названия"
+    assert "€" in product_page.price() or "$" in product_page.price(), (
+        f"Некорректная цена: {product_page.price()}"
     )
-    menu_links = driver.find_elements(By.CSS_SELECTOR, "#top-menu a")
-    products = driver.find_elements(By.CSS_SELECTOR, "article.product-miniature")
-    assert len(menu_links) >= 3, (
-        f"Ожидалось минимум 3 пункта меню, найдено {len(menu_links)}"
-    )
-    assert len(products) >= 1, "На главной нет карточек товаров"
-
-
-def test_catalog_art_page_has_elements(driver, base_url, wait):
-    open_page(driver, f"{base_url}/9-art")
-
-    check_elements(
-        wait,
-        [
-            (By.CSS_SELECTOR, "h1"),
-            (By.CSS_SELECTOR, ".breadcrumb"),
-            (By.CSS_SELECTOR, "article.product-miniature"),
-            (By.CSS_SELECTOR, ".product-miniature__price"),
-            (By.CSS_SELECTOR, ".products__sort-dropdown"),
-            (By.CSS_SELECTOR, ".products__pagination"),
-        ],
-    )
-    assert driver.find_element(By.CSS_SELECTOR, "h1").text.strip() == "Art"
-    prices = driver.find_elements(By.CSS_SELECTOR, ".product-miniature__price")
-    assert any("€" in price.text or "$" in price.text for price in prices), (
-        "У товаров в каталоге нет цен"
-    )
-
-
-def test_product_page_has_elements(driver, base_url, wait):
-    open_page(driver, base_url)
-
-    product_link = wait.until(
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, "article.product-miniature a.product-miniature__title")
-        )
-    )
-    open_page(driver, product_link.get_attribute("href"))
-
-    check_elements(
-        wait,
-        [
-            (By.CSS_SELECTOR, "h1"),
-            (By.CSS_SELECTOR, ".breadcrumb"),
-            (By.CSS_SELECTOR, ".product__prices-block .product__price"),
-            (By.CSS_SELECTOR, "#quantity_wanted"),
-            (By.CSS_SELECTOR, "button.product__add-to-cart-button"),
-        ],
-    )
-    # У товара есть название и цена
-    title = driver.find_element(By.CSS_SELECTOR, "h1").text.strip()
-    price = driver.find_element(By.CSS_SELECTOR, ".product__price").text.strip()
-    assert title, "У товара нет названия"
-    assert "€" in price or "$" in price, f"Некорректная цена товара: {price}"
 
 
 # ============ Страница логина в админку ============
-def test_admin_login_page_has_elements(driver, admin_url, wait):
-    check_elements(
-        wait,
-        [
-            (By.CSS_SELECTOR, "h1"),
-            (By.CSS_SELECTOR, "input[name='email']"),
-            (By.CSS_SELECTOR, "input[name='passwd']"),
-            (By.CSS_SELECTOR, "button[type='submit']"),
-            (By.CSS_SELECTOR, ".show-forgot-password"),
-            (By.CSS_SELECTOR, "#stay_logged_in"),
-        ],
-    )
+def test_admin_login_page_has_elements(driver, base_url):
+    admin_login_page = AdminLoginPage(driver, base_url)
+    admin_login_page.open_login_page()
+
+    for selector in [
+        admin_login_page.H1,
+        admin_login_page.EMAIL_INPUT,
+        admin_login_page.PASSWORD_INPUT,
+        admin_login_page.SUBMIT_BUTTON,
+        admin_login_page.FORGOT_PASSWORD_LINK,
+        admin_login_page.STAY_LOGGED_IN,
+    ]:
+        admin_login_page.find(selector)
 
 
-def test_registration_page_has_elements(driver, base_url, wait):
-    open_page(driver, f"{base_url}/registration")
+# ============ Страница регистрации ============
+def test_registration_page_has_elements(driver, base_url):
+    registration_page = RegistrationPage(driver, base_url)
+    registration_page.open_registration()
 
-    check_elements(
-        wait,
-        [
-            (By.CSS_SELECTOR, "h1"),
-            (By.CSS_SELECTOR, "form#customer-form"),
-            (By.CSS_SELECTOR, "input[name='firstname']"),
-            (By.CSS_SELECTOR, "input[name='lastname']"),
-            (By.CSS_SELECTOR, "input[name='email']"),
-            (By.CSS_SELECTOR, "input[name='password']"),
-            (By.CSS_SELECTOR, "input[name='psgdpr']"),
-            (By.CSS_SELECTOR, "button[data-link-action='save-customer']"),
-        ],
-    )
-    assert (
-        driver.find_element(By.CSS_SELECTOR, "h1").text.strip() == "Create an account"
+    for selector in [
+        registration_page.H1,
+        registration_page.FORM,
+        registration_page.FIRSTNAME,
+        registration_page.LASTNAME,
+        registration_page.EMAIL,
+        registration_page.PASSWORD,
+        registration_page.GDPR_CHECKBOX,
+        registration_page.SUBMIT_BUTTON,
+    ]:
+        registration_page.find(selector)
+
+    assert registration_page.find(registration_page.H1).text.strip() == (
+        "Create an account"
     )
