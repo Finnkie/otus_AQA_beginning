@@ -19,6 +19,7 @@ Chrome или Firefox.
 pytest                          # все тесты в Chrome
 pytest --browser firefox        # в Firefox
 pytest --headless               # без окна браузера
+pytest --slowmo 0.5             # пауза 0.5 с перед каждым действием (наглядный прогон)
 pytest --base-url https://my-prestashop.example.com   # свой инстанс
 ```
 

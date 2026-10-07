@@ -9,6 +9,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 BASE_URL = "https://demo.prestashop.com"
 
+# Пауза перед каждым действием страницы в секундах (режим slowmo).
+# Заполняется из опции --slowmo в pytest_configure
+SLOWMO = 0.0
+
 
 def pytest_addoption(parser):
     parser.addoption(
@@ -30,6 +34,18 @@ def pytest_addoption(parser):
         default=False,
         help="Запуск браузера без графического интерфейса",
     )
+    parser.addoption(
+        "--slowmo",
+        action="store",
+        default=0.0,
+        type=float,
+        help="Пауза в секундах перед каждым действием (наглядный прогон)",
+    )
+
+
+def pytest_configure(config):
+    global SLOWMO
+    SLOWMO = config.getoption("--slowmo")
 
 
 def driver_factory(browser_name: str, headless: bool) -> LocalWebDriver:

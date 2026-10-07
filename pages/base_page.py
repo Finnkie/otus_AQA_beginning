@@ -1,4 +1,7 @@
+import time
+
 import pytest
+import conftest
 from conftest import open_page
 from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.common.by import By
@@ -38,13 +41,20 @@ class BasePage:
     def find_all(self, selector):
         return self.driver.find_elements(By.CSS_SELECTOR, selector)
 
+    def pause(self):
+        """Пауза перед действием - режим slowmo для наглядного прогона."""
+        if conftest.SLOWMO:
+            time.sleep(conftest.SLOWMO)
+
     def fill(self, selector, text):
+        self.pause()
         element = self.find(selector)
         element.clear()
         element.send_keys(text)
 
     def click(self, element):
         """Скроллит к элементу и кликает; если элемент перекрыт - кликает через JS."""
+        self.pause()
         self.driver.execute_script(
             "arguments[0].scrollIntoView({block: 'center'});", element
         )

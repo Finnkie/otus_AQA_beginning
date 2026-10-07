@@ -38,6 +38,7 @@ class AdminLoginPage(BasePage):
         email_input = self.wait.until(
             EC.visibility_of_element_located((By.CSS_SELECTOR, self.EMAIL_INPUT))
         )
+        self.pause()
         email_input.clear()
         email_input.send_keys(email)
         self.driver.find_element(
