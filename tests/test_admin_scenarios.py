@@ -1,8 +1,6 @@
-"""Новые сценарии: управление товарами в разделе администратора."""
-import random
-
 from pages.admin_products_page import AdminProductsPage
 from tests.test_shop_scenarios import ADMIN_EMAIL, ADMIN_PASSWORD, login_to_admin
+import random
 
 
 def _open_products(driver, base_url):

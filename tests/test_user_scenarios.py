@@ -1,8 +1,6 @@
-"""Новые сценарии: регистрация покупателя и валюта из верхнего меню."""
-import random
-
 from pages.main_page import MainPage
 from pages.registration_page import RegistrationPage
+import random
 
 
 # ============ Регистрация нового пользователя ============

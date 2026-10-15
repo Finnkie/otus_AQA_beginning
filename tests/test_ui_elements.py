@@ -1,4 +1,3 @@
-"""Часть 2 прошлого ДЗ: наличие элементов на страницах PrestaShop (через PageObject)."""
 from pages.admin_login_page import AdminLoginPage
 from pages.catalog_page import CatalogPage
 from pages.main_page import MainPage

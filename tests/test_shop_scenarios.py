@@ -1,4 +1,3 @@
-"""Сценарии прошлого ДЗ на PageObject: админка, корзина, валюта в каталоге."""
 from pages.admin_login_page import AdminLoginPage
 from pages.admin_products_page import AdminProductsPage
 from pages.cart_page import CartPage
@@ -17,14 +16,9 @@ def login_to_admin(driver, base_url):
     return login_page
 
 
-# ============ Логин и разлогин в админке ============
 def test_admin_login_and_logout(driver, base_url):
     login_page = login_to_admin(driver, base_url)
-
-    # Логин выполнен: редирект на панель управления
     assert login_page.is_logged_in(), "Не удалось войти в админку"
-
-    # Разлогин: снова открыта форма логина
     assert login_page.logout(), "После выхода не открылась форма логина"
 
 
