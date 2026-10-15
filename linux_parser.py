@@ -46,6 +46,10 @@ def build_report(processes):
 
     users_list = ", ".join(f"'{user}'" for user in sorted(users))
 
+    # Имя процесса - исполняемый файл (первое слово команды)
+    top_mem_name = top_mem_process["command"].split()[0]
+    top_cpu_name = top_cpu_process["command"].split()[0]
+
     lines = [
         "Отчёт о состоянии системы:",
         f"Пользователи системы: {users_list}",
@@ -59,10 +63,8 @@ def build_report(processes):
         "",
         f"Всего памяти используется: {total_mem:.1f}%",
         f"Всего CPU используется: {total_cpu:.1f}%",
-        f"Больше всего памяти использует: {top_mem_process['command'][:20]}"
-        f" (command: {top_mem_process['command']})",
-        f"Больше всего CPU использует: {top_cpu_process['command'][:20]}"
-        f" (command: {top_cpu_process['command']})",
+        f"Больше всего памяти использует: {top_mem_name[:20]}",
+        f"Больше всего CPU использует: {top_cpu_name[:20]}",
     ]
     return "\n".join(lines)
 
