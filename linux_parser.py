@@ -1,14 +1,13 @@
 import subprocess
 from datetime import datetime
 
-# Файл для сырого вывода команды ps aux
+# Файл для просмотра сырого вывода ps aux
 RAW_OUTPUT_FILE = "/home/igrad/Python/otus_AQA_beginning/ps_scan_result.txt"
 
 
 def check_processes():
     result = subprocess.run(["ps", "aux"], capture_output=True, text=True, check=True)
 
-    # Результат команды сохраняем без изменений
     with open(RAW_OUTPUT_FILE, "w", encoding="utf-8") as file:
         file.write(result.stdout)
 
@@ -54,7 +53,6 @@ def build_report(processes):
 
     users_list = ", ".join(f"'{user}'" for user in sorted(users))
 
-    # Имя процесса - исполняемый файл (первое слово команды)
     top_mem_name = top_mem_process["command"].split()[0]
     top_cpu_name = top_cpu_process["command"].split()[0]
 
