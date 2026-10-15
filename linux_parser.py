@@ -1,9 +1,17 @@
 import subprocess
 from datetime import datetime
 
+# Файл для сырого вывода команды ps aux
+RAW_OUTPUT_FILE = "/home/igrad/Python/otus_AQA_beginning/ps_scan_result.txt"
+
 
 def check_processes():
     result = subprocess.run(["ps", "aux"], capture_output=True, text=True, check=True)
+
+    # Результат команды сохраняем без изменений
+    with open(RAW_OUTPUT_FILE, "w", encoding="utf-8") as file:
+        file.write(result.stdout)
+
     lines = result.stdout.strip().split("\n")[1:]
 
     processes = []
@@ -62,8 +70,8 @@ def build_report(processes):
     lines += [
         "",
         f"Всего памяти используется: {total_mem:.1f}%",
-        f"Всего CPU используется: {total_cpu:.1f}%",
         f"Больше всего памяти использует: {top_mem_name[:20]}",
+        f"Всего CPU используется: {total_cpu:.1f}%",
         f"Больше всего CPU использует: {top_cpu_name[:20]}",
     ]
     return "\n".join(lines)
@@ -78,7 +86,8 @@ def main():
     filename = datetime.now().strftime("Отчёт %d-%m-%Y-%H:%M.txt")
     with open(filename, "w", encoding="utf-8") as file:
         file.write(report)
-    print(f'\nОтчёт сохранён в файл: "{filename}"\n')
+    print(f'\nОтчёт сохранён в файл: "{filename}"')
+    print(f"Сырой вывод ps aux сохранён в файл: {RAW_OUTPUT_FILE}")
 
 
 if __name__ == "__main__":
