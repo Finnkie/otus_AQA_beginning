@@ -156,6 +156,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+settings.json
+__init__.py
 
 # Spyder project settings
 .spyderproject
@@ -208,6 +210,7 @@ tempCodeRunnerFile.py
 
 # PyPI configuration file
 .pypirc
+get-pip.py
 
 # Marimo
 marimo/_static/
