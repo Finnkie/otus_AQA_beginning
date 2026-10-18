@@ -5,7 +5,7 @@ from pages.product_page import ProductPage
 from pages.registration_page import RegistrationPage
 
 
-# ============ Главная страница ============
+# Главная страница
 def test_main_page_has_elements(driver, base_url):
     main_page = MainPage(driver, base_url)
     main_page.open_main()
@@ -25,7 +25,7 @@ def test_main_page_has_elements(driver, base_url):
     assert len(main_page.product_cards()) >= 1, "На главной нет карточек товаров"
 
 
-# ============ Каталог (категория Art) ============
+# Каталог (категория Art)
 def test_catalog_art_page_has_elements(driver, base_url):
     catalog_page = CatalogPage(driver, base_url)
     catalog_page.open_catalog()
@@ -45,7 +45,7 @@ def test_catalog_art_page_has_elements(driver, base_url):
     assert any("€" in price or "$" in price for price in prices), "Нет цен у товаров"
 
 
-# ============ Карточка товара ============
+# Карточка товара
 def test_product_page_has_elements(driver, base_url):
     main_page = MainPage(driver, base_url)
     main_page.open_main()
@@ -69,7 +69,7 @@ def test_product_page_has_elements(driver, base_url):
     )
 
 
-# ============ Страница логина в админку ============
+# Страница логина в админку
 def test_admin_login_page_has_elements(driver, base_url):
     admin_login_page = AdminLoginPage(driver, base_url)
     admin_login_page.open_login_page()
@@ -85,7 +85,7 @@ def test_admin_login_page_has_elements(driver, base_url):
         admin_login_page.find(selector)
 
 
-# ============ Страница регистрации ============
+# Страница регистрации
 def test_registration_page_has_elements(driver, base_url):
     registration_page = RegistrationPage(driver, base_url)
     registration_page.open_registration()

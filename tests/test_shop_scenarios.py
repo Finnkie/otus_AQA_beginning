@@ -9,7 +9,6 @@ ADMIN_PASSWORD = "prestashop_demo"
 
 
 def login_to_admin(driver, base_url):
-    """Открывает страницу логина и входит в админку."""
     login_page = AdminLoginPage(driver, base_url)
     login_page.open_login_page()
     login_page.login(ADMIN_EMAIL, ADMIN_PASSWORD)
@@ -22,7 +21,7 @@ def test_admin_login_and_logout(driver, base_url):
     assert login_page.logout(), "После выхода не открылась форма логина"
 
 
-# ============ Случайный товар с главной добавляется в корзину ============
+# Случайный товар с главной добавляется в корзинуу
 def test_add_random_product_to_cart(driver, base_url):
     main_page = MainPage(driver, base_url)
     main_page.open_main()
@@ -36,7 +35,7 @@ def test_add_random_product_to_cart(driver, base_url):
     )
 
 
-# ============ Переключение валюты в каталоге ============
+# Переключение валюты в каталоге
 def test_currency_switch_changes_prices_in_catalog(driver, base_url):
     catalog_page = CatalogPage(driver, base_url)
     catalog_page.open_catalog()

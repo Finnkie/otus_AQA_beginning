@@ -5,8 +5,6 @@ from pages.base_page import BasePage
 
 
 class CatalogPage(BasePage):
-    """Страница каталога (категория Art)."""
-
     PAGE_PATH = "/9-art"
     H1 = "h1"
     BREADCRUMB = ".breadcrumb"

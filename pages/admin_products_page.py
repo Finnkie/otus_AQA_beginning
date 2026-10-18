@@ -7,11 +7,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from pages.base_page import BasePage
 
 
+# Раздел админf: список товаров
 class AdminProductsPage(BasePage):
-    """Раздел администратора: список товаров (Каталог -> Товары)."""
-
-    # Путь к разделу товаров зависит от инстанса: у демо админка живёт
-    # в /admin-dev, у своего PrestaShop - обычно /administration
     ADMIN_PATHS = ["/administration", "/admin-dev"]
     PRODUCTS_TABLE = "#product_catalog_list"
     TABLE_ROWS = "#product_catalog_list tbody tr"
@@ -22,13 +19,7 @@ class AdminProductsPage(BasePage):
     DELETE_LINK = "a[href*='deleteproduct'], a[onclick*='delete']"
 
     def open_products(self):
-        """Открывает список товаров, пробуя известные пути админки.
 
-        На официальном демо (временный адрес *.demo.prestashop.com) админка
-        живёт в /admin-dev, а /administration - это 404-страница витрины,
-        поэтому на демо пробуем только /admin-dev. На своём инстансе
-        PrestaShop сначала пробуем стандартный /administration.
-        """
         if ".demo.prestashop.com" in self.base_url:
             admin_paths = ["/admin-dev"]
         else:
@@ -50,12 +41,11 @@ class AdminProductsPage(BasePage):
         )
 
     def search_product(self, name):
-        """Ищет товар по названию в списке."""
         name_filter = self.find(self.NAME_FILTER)
         name_filter.clear()
         name_filter.send_keys(name)
         name_filter.send_keys(Keys.ENTER)
-        # ждём перезагрузку таблицы
+        # ерезагрузка таблицы
         WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, self.PRODUCTS_TABLE))
         )
@@ -63,15 +53,20 @@ class AdminProductsPage(BasePage):
     def rows(self):
         return self.find_all(self.TABLE_ROWS)
 
+    # Есть ли товар с таким названием в списке (после поиска)
     def has_product(self, name):
-        """Есть ли товар с таким названием в списке (после поиска)."""
-        self.search_product(name)
-        return name.lower() in self.driver.find_element(
-            By.CSS_SELECTOR, self.PRODUCTS_TABLE
-        ).text.lower()
 
+        self.search_product(name)
+        return (
+            name.lower()
+            in self.driver.find_element(
+                By.CSS_SELECTOR, self.PRODUCTS_TABLE
+            ).text.lower()
+        )
+
+    # Создание товара, возвращает страницу формы
     def open_new_product(self):
-        """Открывает форму создания товара, возвращает страницу формы."""
+
         from pages.admin_new_product_page import AdminNewProductPage
 
         self.click(self.find(self.NEW_PRODUCT_LINK))
@@ -79,8 +74,8 @@ class AdminProductsPage(BasePage):
         new_product_page.wait_form()
         return new_product_page
 
+    # Удаление товара из списка
     def delete_product(self, name):
-        """Удаляет товар из списка: ищем его, открываем меню действий, подтверждаем."""
         self.search_product(name)
         rows = self.rows()
         if not rows:
@@ -95,14 +90,15 @@ class AdminProductsPage(BasePage):
 
         # подтверждение: нативный confirm() или модальное окно
         try:
-            alert = WebDriverWait(self.driver, 5).until(
-                lambda d: d.switch_to.alert
-            )
+            alert = WebDriverWait(self.driver, 5).until(lambda d: d.switch_to.alert)
             alert.accept()
         except Exception:
             confirm_button = WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable(
-                    (By.CSS_SELECTOR, ".modal.show .btn-primary, .modal-footer .btn-primary")
+                    (
+                        By.CSS_SELECTOR,
+                        ".modal.show .btn-primary, .modal-footer .btn-primary",
+                    )
                 )
             )
             self.click(confirm_button)

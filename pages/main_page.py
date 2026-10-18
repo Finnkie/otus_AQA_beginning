@@ -7,8 +7,6 @@ from pages.base_page import BasePage
 
 
 class MainPage(BasePage):
-    """Главная страница магазина."""
-
     HEADER = "#header"
     LOGO = "#header .logo"
     SEARCH_INPUT = "input[name='s']"
@@ -29,24 +27,16 @@ class MainPage(BasePage):
 
     def product_cards(self):
         return self.wait.until(
-            EC.presence_of_all_elements_located(
-                (By.CSS_SELECTOR, self.PRODUCT_CARDS)
-            )
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.PRODUCT_CARDS))
         )
 
+    # Возвращает название и адрес случайного товара с главной страницы
     def random_product_name_and_url(self):
-        """Возвращает название и адрес случайного товара с главной страницы."""
         card = random.choice(self.product_cards())
         title = card.find_element(By.CSS_SELECTOR, self.PRODUCT_TITLE)
         return title.text.strip(), title.get_attribute("href")
 
     def add_random_product_to_cart(self):
-        """Добавляет случайный товар с главной в корзину.
-
-        Возвращает название добавленного товара. Быстрая кнопка может
-        не сработать (товар с обязательными вариантами или скрипты ещё
-        грузятся) - тогда добавляем товар с его страницы.
-        """
         product_name, product_url = self.random_product_name_and_url()
         add_buttons = self.find_all(self.ADD_TO_CART_BUTTON)
         add_button = random.choice(add_buttons)

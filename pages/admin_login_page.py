@@ -19,15 +19,7 @@ class AdminLoginPage(BasePage):
         self.admin_path = "/administration"
 
     def open_login_page(self):
-        """Открывает страницу логина в админку.
 
-        На официальном демо (временный адрес *.demo.prestashop.com)
-        админка живёт сразу по /admin-dev/index.php?controller=AdminLogin,
-        а /administration там - обычная 404-страница витрины.
-        На своём инстансе PrestaShop админка обычно доступна
-        по /administration - пробуем его, при отсутствии формы уходим
-        на /admin-dev.
-        """
         if ".demo.prestashop.com" in self.base_url:
             self.admin_path = "/admin-dev/index.php?controller=AdminLogin"
             self.open(self.admin_path)
@@ -51,8 +43,9 @@ class AdminLoginPage(BasePage):
         except TimeoutException:
             return False
 
+    # Входит в админку и ждёт редиректа на панель управления.
     def login(self, email, password):
-        """Входит в админку и ждёт редиректа на панель управления."""
+
         email_input = self.wait.until(
             EC.visibility_of_element_located((By.CSS_SELECTOR, self.EMAIL_INPUT))
         )
@@ -74,31 +67,23 @@ class AdminLoginPage(BasePage):
     def is_logged_in(self):
         return "AdminDashboard" in self.driver.current_url
 
+    # Выходит из админки по ссылке из шапки и ждёт форму логина
     def logout(self):
-        """Выходит из админки по ссылке из шапки и ждёт форму логина.
 
-        Дашборд тяжёлый и может не догрузиться - если ссылка выхода
-        не появилась, перезагружаем страницу и ждём ещё раз.
-        """
         try:
             logout_link = WebDriverWait(self.driver, 30).until(
-                EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, "a[href*='logout']")
-                )
+                EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='logout']"))
             )
         except TimeoutException:
             open_page(self.driver, f"{self.base_url}{self.admin_path}")
             logout_link = WebDriverWait(self.driver, 30).until(
-                EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, "a[href*='logout']")
-                )
+                EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='logout']"))
             )
         logout_url = logout_link.get_attribute("href")
         admin_dir = f"{self.base_url}{self.admin_path}".split("/index.php")[0]
         open_page(self.driver, logout_url)
 
-        # Разлогин выполнен: снова открыта форма логина.
-        # Страница админки тяжёлая, ждём подольше
+        # Разлогин выполнен: снова открыта форма логина
         try:
             WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, self.EMAIL_INPUT))

@@ -3,15 +3,15 @@ from tests.test_shop_scenarios import ADMIN_EMAIL, ADMIN_PASSWORD, login_to_admi
 import random
 
 
+# Входит в админку и открывает список товаров
 def _open_products(driver, base_url):
-    """Входит в админку и открывает список товаров."""
     login_to_admin(driver, base_url)
     products_page = AdminProductsPage(driver, base_url)
     products_page.open_products()
     return products_page
 
 
-# ============ Добавление нового товара в админке ============
+# Добавление нового товара в админке
 def test_admin_add_new_product(driver, base_url):
     products_page = _open_products(driver, base_url)
 
@@ -24,7 +24,7 @@ def test_admin_add_new_product(driver, base_url):
     )
 
 
-# ============ Удаление товара из списка в админке ============
+# Удаление товара из списка в админке
 def test_admin_delete_product(driver, base_url):
     # Создаём свой товар, чтобы удалять было что
     products_page = _open_products(driver, base_url)

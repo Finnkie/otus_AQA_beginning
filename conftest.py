@@ -9,8 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 BASE_URL = "https://demo.prestashop.com"
 
-# Пауза перед каждым действием страницы в секундах (режим slowmo).
-# Заполняется из опции --slowmo в pytest_configure
+# замедленный режим
 SLOWMO = 0.0
 
 
@@ -76,12 +75,6 @@ def framelive_is_ready(driver):
 
 
 def open_page(driver, url):
-    """Открывает страницу, не падая на медленной загрузке демо.
-
-    Демо-магазин часто грузится с таймаутом - пробуем загрузить страницу
-    ещё раз (зависший запрос не мешает новой попытке). Нужные элементы
-    мы всё равно ждём явными ожиданиями.
-    """
     for _ in range(3):
         try:
             driver.get(url)
@@ -91,11 +84,6 @@ def open_page(driver, url):
 
 
 def resolve_shop_url(driver):
-    """Определяет адрес временного магазина по iframe на лендинге демо.
-
-    Открытие идёт в браузере самого теста: инстанс выдаётся максимально
-    свежим, и лишнее отдельное окно браузера не всплывает.
-    """
     for _ in range(3):
         open_page(driver, BASE_URL)
         try:
@@ -103,9 +91,7 @@ def resolve_shop_url(driver):
             return src.split("/en")[0]
         except TimeoutException:
             continue
-    raise RuntimeError(
-        "Не удалось получить адрес демо-магазина с demo.prestashop.com"
-    )
+    raise RuntimeError("Не удалось получить адрес демо-магазина с demo.prestashop.com")
 
 
 @pytest.fixture

@@ -5,9 +5,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from pages.base_page import BasePage
 
 
+# Регистрация пользователя
 class RegistrationPage(BasePage):
-    """Страница регистрации покупателя."""
-
     PAGE_PATH = "/registration"
     H1 = "h1"
     FORM = "form#customer-form"
@@ -23,7 +22,6 @@ class RegistrationPage(BasePage):
         self.open(self.PAGE_PATH)
 
     def register(self, firstname, lastname, email, password):
-        """Заполняет форму регистрации и отправляет её."""
         self.fill(self.FIRSTNAME, firstname)
         self.fill(self.LASTNAME, lastname)
         self.fill(self.EMAIL, email)
@@ -32,17 +30,12 @@ class RegistrationPage(BasePage):
         for selector in [self.GDPR_CHECKBOX, self.PRIVACY_CHECKBOX]:
             for checkbox in self.find_all(selector):
                 if not checkbox.is_selected():
-                    self.driver.execute_script(
-                        "arguments[0].click();", checkbox
-                    )
+                    self.driver.execute_script("arguments[0].click();", checkbox)
         self.click(self.find(self.SUBMIT_BUTTON))
 
     def is_registered(self):
-        """Регистрация успешна: редирект в личный кабинет."""
         try:
-            WebDriverWait(self.driver, 30).until(
-                EC.url_contains("my-account")
-            )
+            WebDriverWait(self.driver, 30).until(EC.url_contains("my-account"))
             return True
         except Exception:
             return False
