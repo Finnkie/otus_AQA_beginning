@@ -7,8 +7,6 @@ from pages.base_page import BasePage
 
 
 class AdminLoginPage(BasePage):
-    """Страница логина в админку."""
-
     H1 = "h1"
     EMAIL_INPUT = "input[name='email']"
     PASSWORD_INPUT = "input[name='passwd']"
@@ -18,25 +16,28 @@ class AdminLoginPage(BasePage):
 
     def __init__(self, driver, base_url):
         super().__init__(driver, base_url)
-        # По заданию админка доступна по /administration, на официальном
-        # демо она живёт по /admin-dev/index.php?controller=AdminLogin
         self.admin_path = "/administration"
 
     def open_login_page(self):
         """Открывает страницу логина в админку.
 
-        По заданию админка доступна по /administration, на официальном
-        демо - по /admin-dev/index.php?controller=AdminLogin. Признак
-        страницы логина - поле пароля (на 404-странице витрины его нет).
+        На официальном демо (временный адрес *.demo.prestashop.com)
+        админка живёт сразу по /admin-dev/index.php?controller=AdminLogin,
+        а /administration там - обычная 404-страница витрины.
+        На своём инстансе PrestaShop админка обычно доступна
+        по /administration - пробуем его, при отсутствии формы уходим
+        на /admin-dev.
         """
-        self.open("/administration")
-        if not self._login_form_appeared():
+        if ".demo.prestashop.com" in self.base_url:
             self.admin_path = "/admin-dev/index.php?controller=AdminLogin"
             self.open(self.admin_path)
+        else:
+            self.open("/administration")
+            if not self._login_form_appeared():
+                self.admin_path = "/admin-dev/index.php?controller=AdminLogin"
+                self.open(self.admin_path)
         WebDriverWait(self.driver, 30).until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, self.PASSWORD_INPUT)
-            )
+            EC.presence_of_element_located((By.CSS_SELECTOR, self.PASSWORD_INPUT))
         )
 
     def _login_form_appeared(self):
@@ -58,9 +59,9 @@ class AdminLoginPage(BasePage):
         self.pause()
         email_input.clear()
         email_input.send_keys(email)
-        self.driver.find_element(
-            By.CSS_SELECTOR, self.PASSWORD_INPUT
-        ).send_keys(password)
+        self.driver.find_element(By.CSS_SELECTOR, self.PASSWORD_INPUT).send_keys(
+            password
+        )
 
         # Нажимаем первую видимую кнопку входа
         for button in self.find_all(self.SUBMIT_BUTTON):
@@ -76,9 +77,7 @@ class AdminLoginPage(BasePage):
     def logout(self):
         """Выходит из админки по ссылке из шапки и ждёт форму логина."""
         logout_link = WebDriverWait(self.driver, 30).until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, "a[href*='logout']")
-            )
+            EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='logout']"))
         )
         logout_url = logout_link.get_attribute("href")
         admin_dir = f"{self.base_url}{self.admin_path}".split("/index.php")[0]
@@ -88,16 +87,12 @@ class AdminLoginPage(BasePage):
         # Страница админки тяжёлая, ждём подольше
         try:
             WebDriverWait(self.driver, 30).until(
-                EC.visibility_of_element_located(
-                    (By.CSS_SELECTOR, self.EMAIL_INPUT)
-                )
+                EC.visibility_of_element_located((By.CSS_SELECTOR, self.EMAIL_INPUT))
             )
         except Exception:
             # демо иногда отвечает 502 - пробуем ещё раз открыть страницу логина
             open_page(self.driver, f"{admin_dir}/login")
             WebDriverWait(self.driver, 30).until(
-                EC.visibility_of_element_located(
-                    (By.CSS_SELECTOR, self.EMAIL_INPUT)
-                )
+                EC.visibility_of_element_located((By.CSS_SELECTOR, self.EMAIL_INPUT))
             )
         return "AdminDashboard" not in self.driver.current_url
