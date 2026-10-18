@@ -8,17 +8,19 @@ from pages.base_page import BasePage
 class CartPage(BasePage):
     """Страница корзины."""
 
-    MAIN = "main"
-
     def open_cart(self):
         self.open("/cart")
 
-    def text(self):
-        """Текст страницы корзины (грузится медленно - ждём подольше)."""
-        main = WebDriverWait(self.driver, 30).until(
-            EC.presence_of_element_located((By.TAG_NAME, self.MAIN))
-        )
-        return main.text
-
     def has_product(self, product_name):
-        return product_name in self.text()
+        """Ждёт появления товара в корзине.
+
+        Список товаров корзины дорисовывается скриптами темы после
+        загрузки страницы, поэтому ждём именно текст с названием.
+        """
+        return bool(
+            WebDriverWait(self.driver, 30).until(
+                EC.text_to_be_present_in_element(
+                    (By.TAG_NAME, "main"), product_name
+                )
+            )
+        )

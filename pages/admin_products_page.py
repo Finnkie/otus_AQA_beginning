@@ -22,8 +22,19 @@ class AdminProductsPage(BasePage):
     DELETE_LINK = "a[href*='deleteproduct'], a[onclick*='delete']"
 
     def open_products(self):
-        """Открывает список товаров, пробуя известные пути админки."""
-        for admin_path in self.ADMIN_PATHS:
+        """Открывает список товаров, пробуя известные пути админки.
+
+        На официальном демо (временный адрес *.demo.prestashop.com) админка
+        живёт в /admin-dev, а /administration - это 404-страница витрины,
+        поэтому на демо пробуем только /admin-dev. На своём инстансе
+        PrestaShop сначала пробуем стандартный /administration.
+        """
+        if ".demo.prestashop.com" in self.base_url:
+            admin_paths = ["/admin-dev"]
+        else:
+            admin_paths = self.ADMIN_PATHS
+
+        for admin_path in admin_paths:
             self.open(f"{admin_path}/index.php/sell/catalog/products")
             try:
                 WebDriverWait(self.driver, 20).until(
@@ -35,7 +46,7 @@ class AdminProductsPage(BasePage):
             except TimeoutException:
                 continue
         raise TimeoutException(
-            f"Не удалось открыть список товаров ни по одному из путей: {self.ADMIN_PATHS}"
+            f"Не удалось открыть список товаров ни по одному из путей: {admin_paths}"
         )
 
     def search_product(self, name):

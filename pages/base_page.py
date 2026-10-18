@@ -19,11 +19,20 @@ class BasePage:
         ".currency-selector",
     ]
     PRODUCT_PRICE = ".product-miniature__price"
+    CART_BADGE = ".header-block__badge"
+    CART_MODAL = "#blockcart-modal.show"
 
     def __init__(self, driver, base_url):
         self.driver = driver
         self.base_url = base_url
         self.wait = WebDriverWait(driver, 15)
+
+    def cart_confirmation(self, driver):
+        """Подтверждение добавления: модальное окно или счётчик товаров."""
+        if self.find_all(self.CART_MODAL):
+            return True
+        badges = self.find_all(self.CART_BADGE)
+        return bool(badges and badges[0].text.strip() not in ("", "0"))
 
     def open(self, path):
         """Открывает страницу магазина по относительному пути или полному URL."""

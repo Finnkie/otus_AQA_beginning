@@ -20,8 +20,6 @@ class MainPage(BasePage):
     PRODUCT_CARDS = "article.product-miniature"
     PRODUCT_TITLE = "a.product-miniature__title"
     ADD_TO_CART_BUTTON = "button[data-button-action='add-to-cart']"
-    CART_BADGE = ".header-block__badge"
-    CART_MODAL = "#blockcart-modal.show"
 
     def open_main(self):
         self.open("/")
@@ -42,13 +40,6 @@ class MainPage(BasePage):
         title = card.find_element(By.CSS_SELECTOR, self.PRODUCT_TITLE)
         return title.text.strip(), title.get_attribute("href")
 
-    def _cart_confirmation(self):
-        """Модальное окно корзины или счётчик товаров - подтверждение добавления."""
-        if self.find_all(self.CART_MODAL):
-            return True
-        badges = self.find_all(self.CART_BADGE)
-        return bool(badges and badges[0].text.strip() not in ("", "0"))
-
     def add_random_product_to_cart(self):
         """Добавляет случайный товар с главной в корзину.
 
@@ -64,7 +55,7 @@ class MainPage(BasePage):
         for _ in range(2):
             self.click(add_button)
             try:
-                self.wait.until(lambda d: self._cart_confirmation())
+                self.wait.until(self.cart_confirmation)
                 confirmed = True
                 break
             except Exception:
