@@ -31,7 +31,7 @@ class ProductPage(BasePage):
         в шапке. Первый клик может пройти до загрузки скриптов
         магазина, поэтому пробуем дважды.
         """
-        add_button = self.wait.until(
+        add_button = WebDriverWait(self.driver, 30).until(
             EC.element_to_be_clickable(
                 (By.CSS_SELECTOR, self.ADD_TO_CART_BUTTON)
             )

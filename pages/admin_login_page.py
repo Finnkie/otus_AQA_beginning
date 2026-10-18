@@ -1,9 +1,9 @@
+from conftest import open_page
+from pages.base_page import BasePage
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
-from pages.base_page import BasePage
 
 
 class AdminLoginPage(BasePage):
@@ -75,10 +75,24 @@ class AdminLoginPage(BasePage):
         return "AdminDashboard" in self.driver.current_url
 
     def logout(self):
-        """Выходит из админки по ссылке из шапки и ждёт форму логина."""
-        logout_link = WebDriverWait(self.driver, 30).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='logout']"))
-        )
+        """Выходит из админки по ссылке из шапки и ждёт форму логина.
+
+        Дашборд тяжёлый и может не догрузиться - если ссылка выхода
+        не появилась, перезагружаем страницу и ждём ещё раз.
+        """
+        try:
+            logout_link = WebDriverWait(self.driver, 30).until(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, "a[href*='logout']")
+                )
+            )
+        except TimeoutException:
+            open_page(self.driver, f"{self.base_url}{self.admin_path}")
+            logout_link = WebDriverWait(self.driver, 30).until(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, "a[href*='logout']")
+                )
+            )
         logout_url = logout_link.get_attribute("href")
         admin_dir = f"{self.base_url}{self.admin_path}".split("/index.php")[0]
         open_page(self.driver, logout_url)
