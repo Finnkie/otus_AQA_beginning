@@ -90,21 +90,22 @@ def open_page(driver, url):
             continue
 
 
-def resolve_base_url(browser_name: str, headless: bool) -> str:
-    driver = driver_factory(browser_name, headless)
-    try:
-        for _ in range(3):
-            driver.get(BASE_URL)
-            try:
-                src = WebDriverWait(driver, 30).until(framelive_is_ready)
-                return src.split("/en")[0]
-            except TimeoutException:
-                continue
-        raise RuntimeError(
-            "Не удалось получить адрес демо-магазина с demo.prestashop.com"
-        )
-    finally:
-        driver.quit()
+def resolve_shop_url(driver):
+    """Определяет адрес временного магазина по iframe на лендинге демо.
+
+    Открытие идёт в браузере самого теста: инстанс выдаётся максимально
+    свежим, и лишнее отдельное окно браузера не всплывает.
+    """
+    for _ in range(3):
+        open_page(driver, BASE_URL)
+        try:
+            src = WebDriverWait(driver, 30).until(framelive_is_ready)
+            return src.split("/en")[0]
+        except TimeoutException:
+            continue
+    raise RuntimeError(
+        "Не удалось получить адрес демо-магазина с demo.prestashop.com"
+    )
 
 
 @pytest.fixture
@@ -119,10 +120,8 @@ def driver(request):
 
 
 @pytest.fixture
-def base_url(request):
+def base_url(driver, request):
     url = request.config.getoption("--base-url").rstrip("/")
     if url == BASE_URL:
-        browser_name = request.config.getoption("--browser")
-        headless = request.config.getoption("--headless")
-        return resolve_base_url(browser_name, headless)
+        return resolve_shop_url(driver)
     return url
