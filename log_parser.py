@@ -1,91 +1,187 @@
-import subprocess
-from datetime import datetime
+"""Анализатор логов web-сервера в формате access.log.
 
-# Файл для просмотра сырого вывода ps aux
-RAW_OUTPUT_FILE = "/home/igrad/Python/otus_AQA_beginning/ps_scan_result.txt"
+Формат строки лога:
+%h - - %t "%r" %s %b "%{Referer}" "%{User-Agent}" %d
+
+Скрипту передаётся файл лога или директория с логами. Для каждого
+файла за один проход собирается статистика: общее количество запросов,
+количество запросов по HTTP-методам, топ 3 IP-адресов и топ 3 самых
+долгих запросов. Статистика выводится в терминал и сохраняется
+в json-файл.
+"""
+import argparse
+import json
+import os
+import re
+
+# Учитываемые HTTP-методы (по заданию)
+HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"]
+
+# Шаблон строки лога: IP, дата, запрос, статус, байты, referer, user-agent, мс.
+# User-Agent парсим жадно до последней кавычки: в логах встречаются
+# attack-запросы с экранированными кавычками \\" внутри User-Agent
+LINE_PATTERN = re.compile(
+    r'^(\S+) \S+ \S+ \[([^\]]+)\] "(.*?)" (\d+) (\S+) "(.*?)" "(.*)" (\d+)$'
+)
 
 
-def check_processes():
-    result = subprocess.run(["ps", "aux"], capture_output=True, text=True, check=True)
+def parse_line(line):
+    """Разбирает строку лога, возвращает словарь с данными запроса или None."""
+    match = LINE_PATTERN.match(line)
+    if match is None:
+        return None
 
-    with open(RAW_OUTPUT_FILE, "w", encoding="utf-8") as file:
-        file.write(result.stdout)
+    # Запрос вида "GET /index.html HTTP/1.1" - берём метод и URL
+    request_parts = match.group(3).split()
+    method = request_parts[0] if request_parts else ""
+    url = request_parts[1] if len(request_parts) > 1 else ""
 
-    lines = result.stdout.strip().split("\n")[1:]
+    return {
+        "ip": match.group(1),
+        "date_time": match.group(2),
+        "method": method,
+        "url": url,
+        "duration": int(match.group(8)),
+    }
 
-    processes = []
-    for line in lines:
-        columns = line.split(None, 10)
-        processes.append(
-            {
-                "user": columns[0],
-                "cpu": float(columns[2]),
-                "mem": float(columns[3]),
-                "command": columns[10],
-            }
+
+def collect_stats(log_path):
+    """Собирает статистику по одному файлу лога за один проход."""
+    total_requests = 0
+    method_counts = {}
+    for method in HTTP_METHODS:
+        method_counts[method] = 0
+
+    ip_counts = {}
+    top_requests = []  # максимум 3 самых долгих запроса
+
+    with open(log_path, encoding="utf-8", errors="ignore") as file:
+        for line in file:
+            request = parse_line(line)
+            if request is None:
+                continue
+
+            total_requests += 1
+
+            if request["method"] in method_counts:
+                method_counts[request["method"]] += 1
+
+            ip = request["ip"]
+            if ip not in ip_counts:
+                ip_counts[ip] = 0
+            ip_counts[ip] += 1
+
+            # Держим список из 3 самых долгих запросов: если новый запрос
+            # дольше самого быстрого из топа - заменяем его
+            if len(top_requests) < 3:
+                top_requests.append(request)
+            else:
+                fastest_index = 0
+                for i in range(1, 3):
+                    if top_requests[i]["duration"] < top_requests[fastest_index]["duration"]:
+                        fastest_index = i
+                if request["duration"] > top_requests[fastest_index]["duration"]:
+                    top_requests[fastest_index] = request
+
+    # Топ 3 IP по количеству запросов (сортировка по количеству)
+    count_ip = []
+    for ip, count in ip_counts.items():
+        count_ip.append((count, ip))
+    count_ip.sort(reverse=True)
+    top_ips = [
+        {"ip": ip, "requests": count}
+        for count, ip in count_ip[:3]
+    ]
+
+    # Топ 3 самых долгих запроса (от самого долгого к меньшим)
+    top_requests.sort(key=get_duration, reverse=True)
+    top_slow = [
+        {
+            "method": request["method"],
+            "url": request["url"],
+            "ip": request["ip"],
+            "duration_ms": request["duration"],
+            "date_time": request["date_time"],
+        }
+        for request in top_requests
+    ]
+
+    return {
+        "file": os.path.basename(log_path),
+        "total_requests": total_requests,
+        "methods": method_counts,
+        "top_ips": top_ips,
+        "top_slow_requests": top_slow,
+    }
+
+
+def get_duration(request):
+    return request["duration"]
+
+
+def print_stats(stats):
+    """Выводит статистику по одному файлу в терминал."""
+    print(f"Файл: {stats['file']}")
+    print(f"\tОбщее количество запросов: {stats['total_requests']}")
+    print("\tКоличество запросов по HTTP-методам:")
+    for method, count in stats["methods"].items():
+        print(f"\t\t{method}: {count}")
+    print("\tТоп 3 IP-адресов по количеству запросов:")
+    for place, ip_info in enumerate(stats["top_ips"], start=1):
+        print(f"\t\t{place}. {ip_info['ip']} - {ip_info['requests']} запросов")
+    print("\tТоп 3 самых долгих запросов:")
+    for place, request in enumerate(stats["top_slow_requests"], start=1):
+        print(
+            f"\t\t{place}. {request['method']} {request['url']} от "
+            f"{request['ip']}, {request['duration_ms']} мс, {request['date_time']}"
         )
-    return processes
 
 
-def build_report(processes):
-    users = []
-    counts = {}
-    for process in processes:
-        user = process["user"]
-        if user not in counts:
-            counts[user] = 0
-            users.append(user)
-        counts[user] += 1
-    # Память
-    total_mem = 0.0
-    total_cpu = 0.0
-    for process in processes:
-        total_mem += process["mem"]
-        total_cpu += process["cpu"]
-    # Процессы
-    top_mem_process = processes[0]
-    top_cpu_process = processes[0]
-    for process in processes:
-        if process["mem"] > top_mem_process["mem"]:
-            top_mem_process = process
-        if process["cpu"] > top_cpu_process["cpu"]:
-            top_cpu_process = process
+def save_stats(stats, json_path):
+    """Сохраняет статистику в json-файл."""
+    with open(json_path, "w", encoding="utf-8") as file:
+        json.dump(stats, file, ensure_ascii=False, indent=2)
 
-    users_list = ", ".join(f"'{user}'" for user in sorted(users))
 
-    top_mem_name = top_mem_process["command"].split()[0]
-    top_cpu_name = top_cpu_process["command"].split()[0]
+def find_log_files(path):
+    """Возвращает список файлов логов по пути: один файл или все .log в директории."""
+    if os.path.isfile(path):
+        return [path]
 
-    lines = [
-        "Отчёт о состоянии системы:",
-        f"Пользователи системы: {users_list}",
-        f"Процессов запущено: {len(processes)}",
-        "",
-        "Пользовательских процессов:",
-    ]
-    for user in sorted(users):
-        lines.append(f"{user}: {counts[user]}")
-    lines += [
-        "",
-        f"Всего памяти используется: {total_mem:.1f}%",
-        f"Больше всего памяти использует: {top_mem_name[:20]}",
-        f"Всего CPU используется: {total_cpu:.1f}%",
-        f"Больше всего CPU использует: {top_cpu_name[:20]}",
-    ]
-    return "\n".join(lines)
+    if os.path.isdir(path):
+        log_files = []
+        for name in sorted(os.listdir(path)):
+            full_path = os.path.join(path, name)
+            if name.endswith(".log") and os.path.isfile(full_path):
+                log_files.append(full_path)
+        return log_files
+
+    return None
 
 
 def main():
-    processes = check_processes()
-    report = build_report(processes)
+    parser = argparse.ArgumentParser(description="Анализатор логов access.log")
+    parser.add_argument(
+        "path",
+        nargs="?",
+        default=".",
+        help="файл лога или директория с логами (по умолчанию текущая)",
+    )
+    args = parser.parse_args()
 
-    print(report)
+    log_files = find_log_files(args.path)
+    if not log_files:
+        print(f"Не найдено файлов логов: {args.path}")
+        raise SystemExit(1)
 
-    filename = datetime.now().strftime("Отчёт %d-%m-%Y-%H:%M.txt")
-    with open(filename, "w", encoding="utf-8") as file:
-        file.write(report)
-    print(f'\nОтчёт сохранён в файл: "{filename}"')
-    print(f"Сырой вывод ps aux сохранён в файл: {RAW_OUTPUT_FILE}")
+    for log_path in log_files:
+        stats = collect_stats(log_path)
+        print_stats(stats)
+
+        # json-файл сохраняем рядом с логом: access.log -> access.log.json
+        json_path = log_path + ".json"
+        save_stats(stats, json_path)
+        print(f"\tСтатистика сохранена: {json_path}\n")
 
 
 if __name__ == "__main__":
