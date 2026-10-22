@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Логи и результаты анализа (не для репозитория)
+*.log
+*.log.json
