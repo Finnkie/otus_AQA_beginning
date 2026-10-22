@@ -88,30 +88,29 @@ def collect_stats(log_path):
     for ip, count in ip_counts.items():
         count_ip.append((count, ip))
     count_ip.sort(reverse=True)
-    top_ips = [
-        {"ip": ip, "requests": count}
-        for count, ip in count_ip[:3]
-    ]
+    # Словарь {"1.1.1.1": 4, "2.2.2.2": 3, ...} - в порядке убывания
+    top_ips = {}
+    for count, ip in count_ip[:3]:
+        top_ips[ip] = count
 
     # Топ 3 самых долгих запроса (от самого долгого к меньшим)
     top_requests.sort(key=get_duration, reverse=True)
     top_slow = [
         {
-            "method": request["method"],
-            "url": request["url"],
             "ip": request["ip"],
-            "duration_ms": request["duration"],
-            "date_time": request["date_time"],
+            "date": request["date_time"],
+            "method": request["method"],
+            "url": request["url"] or "-",
+            "duration": request["duration"],
         }
         for request in top_requests
     ]
 
     return {
-        "file": os.path.basename(log_path),
-        "total_requests": total_requests,
-        "methods": method_counts,
         "top_ips": top_ips,
-        "top_slow_requests": top_slow,
+        "top_longest": top_slow,
+        "total_stat": method_counts,
+        "total_requests": total_requests,
     }
 
 
@@ -119,21 +118,21 @@ def get_duration(request):
     return request["duration"]
 
 
-def print_stats(stats):
+def print_stats(log_path, stats):
     """Выводит статистику по одному файлу в терминал."""
-    print(f"Файл: {stats['file']}")
+    print(f"Файл: {os.path.basename(log_path)}")
     print(f"\tОбщее количество запросов: {stats['total_requests']}")
     print("\tКоличество запросов по HTTP-методам:")
-    for method, count in stats["methods"].items():
+    for method, count in stats["total_stat"].items():
         print(f"\t\t{method}: {count}")
     print("\tТоп 3 IP-адресов по количеству запросов:")
-    for place, ip_info in enumerate(stats["top_ips"], start=1):
-        print(f"\t\t{place}. {ip_info['ip']} - {ip_info['requests']} запросов")
+    for ip, count in stats["top_ips"].items():
+        print(f"\t\t{ip}: {count}")
     print("\tТоп 3 самых долгих запросов:")
-    for place, request in enumerate(stats["top_slow_requests"], start=1):
+    for request in stats["top_longest"]:
         print(
-            f"\t\t{place}. {request['method']} {request['url']} от "
-            f"{request['ip']}, {request['duration_ms']} мс, {request['date_time']}"
+            f"\t\t{request['ip']} [{request['date']}] "
+            f"{request['method']} {request['url']} - {request['duration']} мс"
         )
 
 
@@ -176,7 +175,7 @@ def main():
 
     for log_path in log_files:
         stats = collect_stats(log_path)
-        print_stats(stats)
+        print_stats(log_path, stats)
 
         # json-файл сохраняем рядом с логом: access.log -> access.log.json
         json_path = log_path + ".json"
