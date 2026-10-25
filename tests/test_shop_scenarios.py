@@ -16,15 +16,14 @@ def login_to_admin(driver, base_url):
     return login_page
 
 
-@allure.title("Сценарий: логин и разлогин в админке")
+@allure.title("Логин и разлогин в админке")
 def test_admin_login_and_logout(driver, base_url):
     login_page = login_to_admin(driver, base_url)
     assert login_page.is_logged_in(), "Не удалось войти в админку"
     assert login_page.logout(), "После выхода не открылась форма логина"
 
 
-# Случайный товар с главной добавляется в корзинуу
-@allure.title("Сценарий: случайный товар из главной в корзину")
+@allure.title("Случайный товар из главной в корзинуу")
 def test_add_random_product_to_cart(driver, base_url):
     main_page = MainPage(driver, base_url)
     main_page.open_main()
@@ -38,8 +37,7 @@ def test_add_random_product_to_cart(driver, base_url):
     )
 
 
-# Переключение валюты в каталоге
-@allure.title("Сценарий: смена валюты меняет цены в каталоге")
+@allure.title("Смена валюты меняет цены в каталоге")
 def test_currency_switch_changes_prices_in_catalog(driver, base_url):
     catalog_page = CatalogPage(driver, base_url)
     catalog_page.open_catalog()

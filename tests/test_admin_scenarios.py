@@ -12,8 +12,7 @@ def _open_products(driver, base_url):
     return products_page
 
 
-# Добавление нового товара в админке
-@allure.title("Сценарий: добавление нового товара в админке")
+@allure.title("Добавление нового товара в админке")
 def test_admin_add_new_product(driver, base_url):
     products_page = _open_products(driver, base_url)
 
@@ -26,8 +25,7 @@ def test_admin_add_new_product(driver, base_url):
     )
 
 
-# Удаление товара из списка в админке
-@allure.title("Сценарий: удаление товара из списка в админке")
+@allure.title("Удаление товара из списка в админке")
 def test_admin_delete_product(driver, base_url):
     # Создаём свой товар, чтобы удалять было что
     products_page = _open_products(driver, base_url)

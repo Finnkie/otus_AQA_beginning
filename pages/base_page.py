@@ -15,7 +15,6 @@ import allure
 logger = logging.getLogger(__name__)
 
 
-# Базовая страница: хранит драйвер и общие помощники для всех страниц
 class BasePage:
     CURRENCY_BLOCK = [
         "#_desktop_currency_selector",
@@ -68,7 +67,9 @@ class BasePage:
 
     @allure.step("Кликаем по элементу")
     def click(self, element):
-        logger.debug("Клик по элементу: %s", element.accessible_name or element.tag_name)
+        logger.debug(
+            "Клик по элементу: %s", element.accessible_name or element.tag_name
+        )
         self.pause()
         self.driver.execute_script(
             "arguments[0].scrollIntoView({block: 'center'});", element

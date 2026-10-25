@@ -98,7 +98,6 @@ def resolve_shop_url(driver):
 
 
 def pytest_configure(config):
-    """Настраивает логирование в консоль для всего проекта."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
@@ -127,7 +126,6 @@ def base_url(driver, request):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Прикладывает скриншот и лог браузера к отчёту allure при падении теста."""
     outcome = yield
     report = outcome.get_result()
 
@@ -140,7 +138,7 @@ def pytest_runtest_makereport(item, call):
         if driver is None:
             return
 
-        # Скриншот экрана в момент падения
+        # Скриншот в момент падения
         try:
             png = driver.get_screenshot_as_png()
             allure.attach(
@@ -151,7 +149,7 @@ def pytest_runtest_makereport(item, call):
         except Exception:
             logging.getLogger(__name__).warning("Не удалось снять скриншот")
 
-        # Лог браузера (console) - помогает понять, что отвечал сервер
+        # Лог браузера (console)
         try:
             browser_log = "\n".join(
                 f"{entry['level']}: {entry['message']}"
