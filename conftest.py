@@ -1,3 +1,6 @@
+import logging
+
+import allure
 import pytest
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
@@ -94,6 +97,15 @@ def resolve_shop_url(driver):
     raise RuntimeError("Не удалось получить адрес демо-магазина с demo.prestashop.com")
 
 
+def pytest_configure(config):
+    """Настраивает логирование в консоль для всего проекта."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
+    )
+
+
 @pytest.fixture
 def driver(request):
     browser = driver_factory(
@@ -111,3 +123,44 @@ def base_url(driver, request):
     if url == BASE_URL:
         return resolve_shop_url(driver)
     return url
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Прикладывает скриншот и лог браузера к отчёту allure при падении теста."""
+    outcome = yield
+    report = outcome.get_result()
+
+    if report.when == "call" and report.failed:
+        driver = None
+        for fixture_name in ("driver",):
+            if fixture_name in item.funcargs:
+                driver = item.funcargs[fixture_name]
+                break
+        if driver is None:
+            return
+
+        # Скриншот экрана в момент падения
+        try:
+            png = driver.get_screenshot_as_png()
+            allure.attach(
+                png,
+                name="screenshot on failure",
+                attachment_type=allure.attachment_type.PNG,
+            )
+        except Exception:
+            logging.getLogger(__name__).warning("Не удалось снять скриншот")
+
+        # Лог браузера (console) - помогает понять, что отвечал сервер
+        try:
+            browser_log = "\n".join(
+                f"{entry['level']}: {entry['message']}"
+                for entry in driver.get_log("browser")
+            )
+            allure.attach(
+                browser_log,
+                name="browser console log",
+                attachment_type=allure.attachment_type.TEXT,
+            )
+        except Exception:
+            pass

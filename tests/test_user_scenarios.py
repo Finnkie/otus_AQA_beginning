@@ -1,9 +1,10 @@
 from pages.main_page import MainPage
 from pages.registration_page import RegistrationPage
 import random
+import allure
 
 
-# Регистрация нового пользователя
+@allure.title("Регистрация нового пользователя")
 def test_register_new_user(driver, base_url):
     registration_page = RegistrationPage(driver, base_url)
     registration_page.open_registration()
@@ -21,7 +22,7 @@ def test_register_new_user(driver, base_url):
     )
 
 
-# Переключение валюты из верхнего меню
+@allure.title("Смена валюты из верхнего меню")
 def test_switch_currency_from_top_menu(driver, base_url):
     main_page = MainPage(driver, base_url)
     main_page.open_main()

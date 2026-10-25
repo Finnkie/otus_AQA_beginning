@@ -3,6 +3,7 @@ from pages.admin_products_page import AdminProductsPage
 from pages.cart_page import CartPage
 from pages.catalog_page import CatalogPage
 from pages.main_page import MainPage
+import allure
 
 ADMIN_EMAIL = "demo@prestashop.com"
 ADMIN_PASSWORD = "prestashop_demo"
@@ -15,6 +16,7 @@ def login_to_admin(driver, base_url):
     return login_page
 
 
+@allure.title("Сценарий: логин и разлогин в админке")
 def test_admin_login_and_logout(driver, base_url):
     login_page = login_to_admin(driver, base_url)
     assert login_page.is_logged_in(), "Не удалось войти в админку"
@@ -22,6 +24,7 @@ def test_admin_login_and_logout(driver, base_url):
 
 
 # Случайный товар с главной добавляется в корзинуу
+@allure.title("Сценарий: случайный товар из главной в корзину")
 def test_add_random_product_to_cart(driver, base_url):
     main_page = MainPage(driver, base_url)
     main_page.open_main()
@@ -36,6 +39,7 @@ def test_add_random_product_to_cart(driver, base_url):
 
 
 # Переключение валюты в каталоге
+@allure.title("Сценарий: смена валюты меняет цены в каталоге")
 def test_currency_switch_changes_prices_in_catalog(driver, base_url):
     catalog_page = CatalogPage(driver, base_url)
     catalog_page.open_catalog()

@@ -1,6 +1,7 @@
 from pages.admin_products_page import AdminProductsPage
 from tests.test_shop_scenarios import ADMIN_EMAIL, ADMIN_PASSWORD, login_to_admin
 import random
+import allure
 
 
 # Входит в админку и открывает список товаров
@@ -12,6 +13,7 @@ def _open_products(driver, base_url):
 
 
 # Добавление нового товара в админке
+@allure.title("Сценарий: добавление нового товара в админке")
 def test_admin_add_new_product(driver, base_url):
     products_page = _open_products(driver, base_url)
 
@@ -25,6 +27,7 @@ def test_admin_add_new_product(driver, base_url):
 
 
 # Удаление товара из списка в админке
+@allure.title("Сценарий: удаление товара из списка в админке")
 def test_admin_delete_product(driver, base_url):
     # Создаём свой товар, чтобы удалять было что
     products_page = _open_products(driver, base_url)

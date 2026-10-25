@@ -3,9 +3,11 @@ from pages.catalog_page import CatalogPage
 from pages.main_page import MainPage
 from pages.product_page import ProductPage
 from pages.registration_page import RegistrationPage
+import allure
 
 
 # Главная страница
+@allure.title("Главная: наличие основных элементов")
 def test_main_page_has_elements(driver, base_url):
     main_page = MainPage(driver, base_url)
     main_page.open_main()
@@ -26,6 +28,7 @@ def test_main_page_has_elements(driver, base_url):
 
 
 # Каталог (категория Art)
+@allure.title("Каталог Art: наличие основных элементов")
 def test_catalog_art_page_has_elements(driver, base_url):
     catalog_page = CatalogPage(driver, base_url)
     catalog_page.open_catalog()
@@ -46,6 +49,7 @@ def test_catalog_art_page_has_elements(driver, base_url):
 
 
 # Карточка товара
+@allure.title("Карточка товара: наличие основных элементов")
 def test_product_page_has_elements(driver, base_url):
     main_page = MainPage(driver, base_url)
     main_page.open_main()
@@ -70,6 +74,7 @@ def test_product_page_has_elements(driver, base_url):
 
 
 # Страница логина в админку
+@allure.title("Логин в админку: наличие элементов формы")
 def test_admin_login_page_has_elements(driver, base_url):
     admin_login_page = AdminLoginPage(driver, base_url)
     admin_login_page.open_login_page()
@@ -86,6 +91,7 @@ def test_admin_login_page_has_elements(driver, base_url):
 
 
 # Страница регистрации
+@allure.title("Регистрация: наличие элементов формы")
 def test_registration_page_has_elements(driver, base_url):
     registration_page = RegistrationPage(driver, base_url)
     registration_page.open_registration()

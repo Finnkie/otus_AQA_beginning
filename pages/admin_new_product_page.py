@@ -1,8 +1,13 @@
+import logging
+
+import allure
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from pages.base_page import BasePage
+
+
+logger = logging.getLogger(__name__)
 
 
 # админка: форма создания нового товара
@@ -30,13 +35,16 @@ class AdminNewProductPage(BasePage):
                 return inputs[0]
         return None
 
+    @allure.step("Ждём форму создания товара")
     def wait_form(self):
         WebDriverWait(self.driver, 30).until(
             lambda d: self._find_first(self.NAME_INPUTS)
         )
 
-    # Создаёт товар с названием и ценой, ждёт сохранени
+    @allure.step("Создаём товар '{name}' с ценой {price}")
     def create_product(self, name, price):
+        """Создаёт товар с названием и ценой, ждёт сохранения."""
+        logger.info("Создаём товар: %s (цена %s)", name, price)
         name_input = self.wait_form()
         name_input.clear()
         name_input.send_keys(name)
@@ -54,3 +62,4 @@ class AdminNewProductPage(BasePage):
                 d.find_elements(By.CSS_SELECTOR, ".toast.show, .alert-success")
             )
         )
+        logger.info("Товар сохранён")

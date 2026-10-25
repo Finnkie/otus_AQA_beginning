@@ -1,9 +1,14 @@
+import logging
 import random
 
+import allure
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
 from pages.base_page import BasePage
+
+
+logger = logging.getLogger(__name__)
 
 
 class MainPage(BasePage):
@@ -19,23 +24,32 @@ class MainPage(BasePage):
     PRODUCT_TITLE = "a.product-miniature__title"
     ADD_TO_CART_BUTTON = "button[data-button-action='add-to-cart']"
 
+    @allure.step("Открываем главную страницу")
     def open_main(self):
         self.open("/")
 
+    @allure.step("Считаем ссылки в главном меню")
     def menu_links_count(self):
-        return len(self.find_all(self.MENU_LINKS))
+        count = len(self.find_all(self.MENU_LINKS))
+        logger.info("Ссылок в меню: %d", count)
+        return count
 
+    @allure.step("Собираем карточки товаров с главной")
     def product_cards(self):
         return self.wait.until(
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.PRODUCT_CARDS))
         )
 
-    # Возвращает название и адрес случайного товара с главной страницы
+    @allure.step("Выбираем случайный товар на главной")
     def random_product_name_and_url(self):
+        """Возвращает название и адрес случайного товара с главной страницы."""
         card = random.choice(self.product_cards())
         title = card.find_element(By.CSS_SELECTOR, self.PRODUCT_TITLE)
-        return title.text.strip(), title.get_attribute("href")
+        name, url = title.text.strip(), title.get_attribute("href")
+        logger.info("Выбран товар: %s (%s)", name, url)
+        return name, url
 
+    @allure.step("Добавляем случайный товар с главной в корзину")
     def add_random_product_to_cart(self):
         product_name, product_url = self.random_product_name_and_url()
         add_buttons = self.find_all(self.ADD_TO_CART_BUTTON)
@@ -54,7 +68,9 @@ class MainPage(BasePage):
         if not confirmed:
             from pages.product_page import ProductPage
 
+            logger.info("Быстрая кнопка не сработала, открываем карточку товара")
             self.open(product_url)
             product_page = ProductPage(self.driver, self.base_url)
             product_page.add_to_cart()
+        logger.info("Товар '%s' добавлен в корзину", product_name)
         return product_name

@@ -1,3 +1,4 @@
+import logging
 import time
 
 import pytest
@@ -7,6 +8,11 @@ from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
+
+import allure
+
+
+logger = logging.getLogger(__name__)
 
 
 # Базовая страница: хранит драйвер и общие помощники для всех страниц
@@ -25,19 +31,22 @@ class BasePage:
         self.base_url = base_url
         self.wait = WebDriverWait(driver, 15)
 
+    @allure.step("Проверяем подтверждение добавления в корзину")
     def cart_confirmation(self, driver):
         if self.find_all(self.CART_MODAL):
             return True
         badges = self.find_all(self.CART_BADGE)
         return bool(badges and badges[0].text.strip() not in ("", "0"))
 
+    @allure.step("Открываем страницу '{path}'")
     def open(self, path):
-        if path.startswith("http"):
-            open_page(self.driver, path)
-        else:
-            open_page(self.driver, f"{self.base_url}{path}")
+        url = path if path.startswith("http") else f"{self.base_url}{path}"
+        logger.info("Открываем страницу: %s", url)
+        open_page(self.driver, url)
 
+    @allure.step("Ищем элемент '{selector}'")
     def find(self, selector):
+        logger.debug("Ожидаем элемент: %s", selector)
         return self.wait.until(
             EC.presence_of_element_located((By.CSS_SELECTOR, selector))
         )
@@ -49,13 +58,17 @@ class BasePage:
         if conftest.SLOWMO:
             time.sleep(conftest.SLOWMO)
 
+    @allure.step("Заполняем поле '{selector}' значением '{text}'")
     def fill(self, selector, text):
+        logger.info("Заполняем поле %s", selector)
         self.pause()
         element = self.find(selector)
         element.clear()
         element.send_keys(text)
 
+    @allure.step("Кликаем по элементу")
     def click(self, element):
+        logger.debug("Клик по элементу: %s", element.accessible_name or element.tag_name)
         self.pause()
         self.driver.execute_script(
             "arguments[0].scrollIntoView({block: 'center'});", element
@@ -63,14 +76,17 @@ class BasePage:
         try:
             element.click()
         except ElementClickInterceptedException:
+            logger.debug("Элемент перекрыт, кликаем через JS")
             self.driver.execute_script("arguments[0].click();", element)
 
+    @allure.step("Кликаем и ждём в URL '{url_part}'")
     def click_and_wait_url(self, element, url_part):
         self.click(element)
         self.wait.until(EC.url_contains(url_part))
 
     # ---------- общее для витрины: цены и валюта ----------
 
+    @allure.step("Ищем блок выбора валюты")
     def currency_block(self):
         for selector in self.CURRENCY_BLOCK:
             blocks = self.find_all(selector)
@@ -78,7 +94,9 @@ class BasePage:
                 return blocks[0]
         return None
 
+    @allure.step("Переключаем валюту на '{currency_symbol}'")
     def switch_currency(self, currency_symbol):
+        logger.info("Переключаем валюту: %s", currency_symbol)
         block = self.currency_block()
         if block is None:
             pytest.skip(
@@ -109,8 +127,11 @@ class BasePage:
         # Дожидаемся обновления страницы с новыми ценами
         self.driver.refresh()
 
+    @allure.step("Собираем цены товаров на странице")
     def product_prices(self):
         prices = self.wait.until(
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.PRODUCT_PRICE))
         )
-        return [price.text.strip() for price in prices]
+        price_texts = [price.text.strip() for price in prices]
+        logger.info("Найдено цен: %d", len(price_texts))
+        return price_texts
