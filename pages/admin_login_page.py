@@ -53,7 +53,6 @@ class AdminLoginPage(BasePage):
     @allure.step("Входим в админку под {email}")
     def login(self, email, password):
         """Входит в админку и ждёт редиректа на панель управления."""
-        logger.info("Логин в админку: %s", email)
         email_input = self.wait.until(
             EC.visibility_of_element_located((By.CSS_SELECTOR, self.EMAIL_INPUT))
         )

@@ -62,4 +62,3 @@ class AdminNewProductPage(BasePage):
                 d.find_elements(By.CSS_SELECTOR, ".toast.show, .alert-success")
             )
         )
-        logger.info("Товар сохранён")

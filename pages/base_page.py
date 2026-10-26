@@ -40,12 +40,10 @@ class BasePage:
     @allure.step("Открываем страницу '{path}'")
     def open(self, path):
         url = path if path.startswith("http") else f"{self.base_url}{path}"
-        logger.info("Открываем страницу: %s", url)
         open_page(self.driver, url)
 
     @allure.step("Ищем элемент '{selector}'")
     def find(self, selector):
-        logger.debug("Ожидаем элемент: %s", selector)
         return self.wait.until(
             EC.presence_of_element_located((By.CSS_SELECTOR, selector))
         )
@@ -59,7 +57,6 @@ class BasePage:
 
     @allure.step("Заполняем поле '{selector}' значением '{text}'")
     def fill(self, selector, text):
-        logger.info("Заполняем поле %s", selector)
         self.pause()
         element = self.find(selector)
         element.clear()
@@ -67,9 +64,6 @@ class BasePage:
 
     @allure.step("Кликаем по элементу")
     def click(self, element):
-        logger.debug(
-            "Клик по элементу: %s", element.accessible_name or element.tag_name
-        )
         self.pause()
         self.driver.execute_script(
             "arguments[0].scrollIntoView({block: 'center'});", element
@@ -97,7 +91,6 @@ class BasePage:
 
     @allure.step("Переключаем валюту на '{currency_symbol}'")
     def switch_currency(self, currency_symbol):
-        logger.info("Переключаем валюту: %s", currency_symbol)
         block = self.currency_block()
         if block is None:
             pytest.skip(

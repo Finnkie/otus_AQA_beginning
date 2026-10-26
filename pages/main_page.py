@@ -31,7 +31,6 @@ class MainPage(BasePage):
     @allure.step("Считаем ссылки в главном меню")
     def menu_links_count(self):
         count = len(self.find_all(self.MENU_LINKS))
-        logger.info("Ссылок в меню: %d", count)
         return count
 
     @allure.step("Собираем карточки товаров с главной")
@@ -46,7 +45,6 @@ class MainPage(BasePage):
         card = random.choice(self.product_cards())
         title = card.find_element(By.CSS_SELECTOR, self.PRODUCT_TITLE)
         name, url = title.text.strip(), title.get_attribute("href")
-        logger.info("Выбран товар: %s (%s)", name, url)
         return name, url
 
     @allure.step("Добавляем случайный товар с главной в корзину")
@@ -72,5 +70,4 @@ class MainPage(BasePage):
             self.open(product_url)
             product_page = ProductPage(self.driver, self.base_url)
             product_page.add_to_cart()
-        logger.info("Товар '%s' добавлен в корзину", product_name)
         return product_name

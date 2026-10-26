@@ -40,7 +40,6 @@ class ProductPage(BasePage):
             self.click(add_button)
             try:
                 WebDriverWait(self.driver, 10).until(self.cart_confirmation)
-                logger.info("Товар добавлен в корзину")
                 return
             except TimeoutException:
                 continue

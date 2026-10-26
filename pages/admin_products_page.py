@@ -49,7 +49,6 @@ class AdminProductsPage(BasePage):
 
     @allure.step("Ищем товар '{name}' в списке")
     def search_product(self, name):
-        logger.info("Поиск товара: %s", name)
         name_filter = self.find(self.NAME_FILTER)
         name_filter.clear()
         name_filter.send_keys(name)
@@ -114,5 +113,4 @@ class AdminProductsPage(BasePage):
                 )
             )
             self.click(confirm_button)
-        logger.info("Товар '%s' удалён", name)
         return True

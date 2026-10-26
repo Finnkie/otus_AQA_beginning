@@ -30,7 +30,6 @@ class RegistrationPage(BasePage):
 
     @allure.step("Регистрируем пользователя {email}")
     def register(self, firstname, lastname, email, password):
-        logger.info("Регистрируем пользователя: %s", email)
         self.fill(self.FIRSTNAME, firstname)
         self.fill(self.LASTNAME, lastname)
         self.fill(self.EMAIL, email)
@@ -46,8 +45,7 @@ class RegistrationPage(BasePage):
     def is_registered(self):
         try:
             WebDriverWait(self.driver, 30).until(EC.url_contains("my-account"))
-            logger.info("Регистрация успешна")
             return True
         except Exception:
-            logger.warning("Перехода в личный кабинет не случилось")
+            logger.warning("Переход в личный кабинет не произошел")
             return False
