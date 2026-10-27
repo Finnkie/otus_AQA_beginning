@@ -1,0 +1,19 @@
+# В образ нужны только файлы тестов
+.git
+.venv
+.vscode
+.vscode/
+src/
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/
+allure-results/
+allure-report/
+*.log
+*.log.json
+*.txt
+!requirements.txt
+README.md
+Dockerfile
+.dockerignore
