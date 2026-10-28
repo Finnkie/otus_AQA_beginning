@@ -40,6 +40,37 @@ def pytest_addoption(parser):
         type=float,
         help="Пауза в секундах перед каждым действием (наглядный прогон)",
     )
+    parser.addoption(
+        "--host",
+        action="store",
+        default="127.0.0.1",
+        help="Хост MySQL",
+    )
+    parser.addoption(
+        "--port",
+        action="store",
+        default=3306,
+        type=int,
+        help="Порт MySQL",
+    )
+    parser.addoption(
+        "--database",
+        action="store",
+        default="prestashop",
+        help="Имя базы данных",
+    )
+    parser.addoption(
+        "--user",
+        action="store",
+        default="root",
+        help="Пользователь БД",
+    )
+    parser.addoption(
+        "--password",
+        action="store",
+        default="admin",
+        help="Пароль БД",
+    )
 
 
 def pytest_configure(config):
@@ -111,3 +142,23 @@ def base_url(driver, request):
     if url == BASE_URL:
         return resolve_shop_url(driver)
     return url
+
+
+# =========== Для работы с базой данных PrestaShop ===========
+
+@pytest.fixture(scope="session")
+def connection(request):
+    """Соединение с базой данных MySQL на весь прогон тестов."""
+    import pymysql
+
+    connection = pymysql.connect(
+        host=request.config.getoption("--host"),
+        port=request.config.getoption("--port"),
+        user=request.config.getoption("--user"),
+        password=request.config.getoption("--password"),
+        database=request.config.getoption("--database"),
+        cursorclass=pymysql.cursors.DictCursor,
+        autocommit=True,
+    )
+    yield connection
+    connection.close()
