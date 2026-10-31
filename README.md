@@ -32,9 +32,12 @@ allure-results/      # результаты прогона (в git не попа
 ловит момент падения теста, снимает скриншот (`driver.get_screenshot_as_png`)
 и прикладывает его к отчёту через `allure.attach`
 
-# Запуск в Docker
+# Запуск тестов в Docker
 
 Тесты можно запускать не устанавливая браузеры и зависимости себе на машину.
+
+# Контейнер активен только во время выполнения тестов!
+# Тесты запускаются автоматически сразу после запуска контейнера
 
 Сборка образа:
 
@@ -43,7 +46,7 @@ docker build -t tests .
 ```
 
 Внутрь образа уже установлены Python, зависимости из requirements.txt,
-Google Chrome и Firefox (в контейнере нет дисплея, браузеры запускаются в headless).
+google Chrome и firefox (браузеры запускаются в headless).
 
 Запуск тестов — всё, что указано после имени образа, передаётся pytest как есть:
 
@@ -56,10 +59,3 @@ docker run -it tests --browser firefox --slowmo 0.5
 
 Так работают все опции из conftest.py: `--browser`, `--base-url`, `--slowmo`,
 плюс любые аргументы pytest (`-k`, путь к конкретному файлу тестов и т.д.).
-
-Чтобы забрать результаты allure из контейнера на хост:
-
-```bash
-docker run --rm -v $(pwd)/allure-results:/app/allure-results tests
-allure serve allure-results
-```

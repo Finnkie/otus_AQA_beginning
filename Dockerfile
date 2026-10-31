@@ -2,8 +2,6 @@ FROM python:3.11-slim
 
 USER root
 
-ENV PYTHONUNBUFFERED=1
-
 # slim-образ + необходимые зависимости
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
