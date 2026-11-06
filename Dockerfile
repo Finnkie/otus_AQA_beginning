@@ -18,10 +18,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Каталоги копируются с сохранением имён: pages/ -> ./pages/
-COPY conftest.py pytest.ini ./
-COPY pages/ pages/
-COPY tests/ tests/
+COPY conftest.py pytest.ini pages/ tests/ ./
 
 # --headles: контейнер без UI
 ENTRYPOINT ["pytest", "--headless"]
