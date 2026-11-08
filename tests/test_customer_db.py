@@ -1,4 +1,4 @@
-"""Тесты работы с клиентами PrestaShop (таблица ps_customer)."""
+# ===================== Тесты работы с клиентами PrestaShop (таблица ps_customer).=================
 import random
 
 import allure
@@ -11,8 +11,8 @@ from lib.db import (
 )
 
 
+#  Готовит данные нового клиента
 def make_customer_data(email_suffix=""):
-    """Готовит данные нового клиента."""
     return {
         "firstname": "Иван",
         "lastname": "Тестов",
@@ -28,7 +28,6 @@ def make_customer_data(email_suffix=""):
 def test_create_customer(connection):
     customer_data = make_customer_data()
     customer_id = create_customer(connection, customer_data)
-
     # Клиент найден по id и все переданные поля совпадают
     customer = get_customer(connection, customer_id)
     assert customer is not None, f"Клиент с id={customer_id} не найден в базе"
@@ -62,9 +61,7 @@ def test_update_customer(connection):
 def test_update_nonexistent_customer(connection):
     nonexistent_id = 999999999
 
-    updated_rows = update_customer(
-        connection, nonexistent_id, {"firstname": "Никто"}
-    )
+    updated_rows = update_customer(connection, nonexistent_id, {"firstname": "Никто"})
 
     # Ни одна строка не изменилась, клиент с таким id не появился
     assert updated_rows == 0, "Обновление несуществующего клиента изменило строки"
